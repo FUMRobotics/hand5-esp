@@ -169,7 +169,7 @@ void loop()
     {
       structFingerState.Thumb="100";
     }
-    FingerStateJson["Thumb"]["Value"] = structFingerState.Thumb;
+    FingerStateJson["Thumb"] = structFingerState.Thumb;
     // Serial.println(structFingerState.Thumb.Status);
     // Serial.println(structFingerState.Thumb.Value);
     //-----------------|Middele Finger|--------------------------
@@ -180,7 +180,7 @@ void loop()
     {
       structFingerState.Middele="100";
     }
-    FingerStateJson["Middele"]["Value"] = structFingerState.Middele;
+    FingerStateJson["Middele"]= structFingerState.Middele;
     // Serial.println(structFingerState.Middele.Status);
     // Serial.println(structFingerState.Middele.Value);
     //-----------------|Index Finger|---------------------------
@@ -191,7 +191,7 @@ void loop()
     {
       structFingerState.Index="100";
     }
-    FingerStateJson["Index"]["Value"] = structFingerState.Index;
+    FingerStateJson["Index"] = structFingerState.Index;
     // Serial.println(structFingerState.Index.Status);
     // Serial.println(structFingerState.Index.Value);
     //-----------------|Ring Finger|----------------------------
@@ -202,7 +202,7 @@ void loop()
     {
       structFingerState.Ring="100";
     }
-    FingerStateJson["Ring"]["Value"] = structFingerState.Ring;
+    FingerStateJson["Ring"] = structFingerState.Ring;
     // Serial.println(structFingerState.Ring.Status);
     // Serial.println(structFingerState.Ring.Value);
     //-----------------|Pinky Finger|----------------------------
@@ -213,7 +213,7 @@ void loop()
     {
       structFingerState.Pinky="100";
     }
-    FingerStateJson["Pinky"]["Value"] = structFingerState.Pinky;
+    FingerStateJson["Pinky"] = structFingerState.Pinky;
     // Serial.println(structFingerState.Pinky.Status);
     // Serial.println(structFingerState.Pinky.Value);
     char json_string[256];
