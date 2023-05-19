@@ -139,7 +139,7 @@ void loop()
       structFingerState.Thumb="100";
     }
     FingerValue=structFingerState.Thumb.toInt();
-    FingerStateJson["Thumb"] =String(FingerValue);
+    FingerStateJson["Thumb"]["Value"] =String(FingerValue);
     //-----------------|Middele Finger|--------------------------
     if(structFingerState.Middele==0)
     {
@@ -149,7 +149,7 @@ void loop()
       structFingerState.Middele="100";
     }
     FingerValue=structFingerState.Middele.toInt();
-    FingerStateJson["Middele"]= String(FingerValue);
+    FingerStateJson["Middele"]["Value"]= String(FingerValue);
     //-----------------|Index Finger|---------------------------
     if(structFingerState.Index==0)
     {
@@ -159,7 +159,7 @@ void loop()
       structFingerState.Index="100";
     }
     FingerValue=structFingerState.Index.toInt();
-    FingerStateJson["Index"] = String(FingerValue);
+    FingerStateJson["Index"]["Value"] = String(FingerValue);
     //-----------------|Ring Finger|----------------------------
     if(structFingerState.Ring==0)
     {
@@ -169,7 +169,7 @@ void loop()
       structFingerState.Ring="100";
     }
     FingerValue=structFingerState.Ring.toInt();
-    FingerStateJson["Ring"] = String(FingerValue);
+    FingerStateJson["Ring"]["Value"] = String(FingerValue);
     //-----------------|Pinky Finger|----------------------------
     if(structFingerState.Pinky==0)
     {
@@ -179,7 +179,7 @@ void loop()
       structFingerState.Pinky="100";
     }
     FingerValue=structFingerState.Pinky.toInt();
-    FingerStateJson["Pinky"] = String(FingerValue);
+    FingerStateJson["Pinky"]["Value"] = String(FingerValue);
     
     /*creat JSON struct */
     char json_string[256];
