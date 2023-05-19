@@ -13,7 +13,7 @@
 
 // Replace with your network credentials
 const char *ssid = "HAND";
-const char *password = "fum";
+const char *password = "FUM_HAND";
 /* Put IP Address details */
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
@@ -29,8 +29,6 @@ AsyncWebServer server(80);
 const long interval = 10000;
 AsyncWebParameter *response;
 /*********************|Finger struct|**********************/
-
-
 struct FingerStateStruct
 {
   String Thumb;
@@ -48,29 +46,26 @@ const char index_html[] PROGMEM = R"rawliteral(
 <html>
 
 <head>
-  <title>ESP32 HTML Form</title>
+  <title>FUM HAND</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
-  <form action="/Thumb">
+  
+    <form action="/Send">
     Thumb Finger's position: <input type="number" name="ThumbValue"><br>
-  </form><br>
-  <form action="/Middele">
+<br>
     Middle Finger's position: <input type="number" name="MiddleValue"><br>
-  </form><br>
-  <form action="/Index">
+<br>
     Index Finger's position: <input type="number" name="IndexValue"><br>
-  </form><br>
-  <form action="/Ring">
+<br>
     Ring Finger's position: <input type="number" name="RingValue"><br>
-  </form><br>
-  <form action="/Pinky">
+<br>
     Pinky Finger's position: <input type="number" name="PinkyValue"><br>
+<br>
+    <input type="submit" value="SEND">
 </form><br>
-<input type="submit" value="STOP" name="ReadStatus">
 </body>
-
 </html>
 )rawliteral";
 //-------------------|END html page|------------------------
@@ -88,7 +83,7 @@ void setup()
     Serial.println("STA Failed to configure");
   }
   // Initialize SPIFFS
-  WiFi.softAP("Hand", "FUM");
+  WiFi.softAP(ssid,password);
   Serial.println();
   Serial.print("Server IP address: ");
   Serial.println(WiFi.softAPIP());
@@ -105,46 +100,19 @@ void setup()
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send_P(200, "text/html", index_html); });
 
-  //-----------------|Thumb Finger|--------------------------
-  server.on("/Thumb", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-  response = request->getParam("ThumbValue");
-    structFingerState.Thumb =response->value();
-      SendFingerStates=1;
-
-  //-----------------|Refresh Page|----------------------------
-    request->send_P(200, "text/html", index_html); });
-
-  //-----------------|Middele Finger|--------------------------
-  server.on("/Middele", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-  response = request->getParam("MiddleValue");
-    structFingerState.Middele=response->value();
-      SendFingerStates=1;
-  //-----------------|Refresh Page|---------------------------
-    request->send_P(200, "text/html", index_html); });
-  //-----------------|Index Finger|---------------------------
-  server.on("/Index", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-  response = request->getParam("IndexValue");
-    structFingerState.Index=response->value();
-      SendFingerStates=1;
-  //-----------------|Refresh Page|---------------------------
-  SendFingerStates=1;
-    request->send_P(200, "text/html", index_html); });
-  //-----------------|Ring Finger|----------------------------
-  server.on("/Ring", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-  response = request->getParam("RingValue");
-    structFingerState.Ring=response->value();
-      SendFingerStates=1;
-  //-----------------|Refresh Page|----------------------------
-    request->send_P(200, "text/html", index_html); });
-  //-----------------|Pinky Finger|----------------------------
-  server.on("/Pinky", HTTP_GET, [](AsyncWebServerRequest *request)
+  //-----------------|Read fingers value|-----------------------
+  server.on("/Send", HTTP_GET, [](AsyncWebServerRequest *request)
             {
   response = request->getParam("PinkyValue");
     structFingerState.Pinky=response->value();
+      response = request->getParam("RingValue");
+    structFingerState.Ring=response->value();
+      response = request->getParam("IndexValue");
+    structFingerState.Index=response->value();
+      response = request->getParam("MiddleValue");
+    structFingerState.Middele=response->value();
+      response = request->getParam("ThumbValue");
+    structFingerState.Thumb =response->value();
       SendFingerStates=1;
   //-----------------|Refresh Page|----------------------------
     request->send_P(200, "text/html", index_html); });
@@ -160,64 +128,63 @@ void loop()
 {
   if (SendFingerStates)
   {
+    uint FingerValue=0;
     // String json_string;
     //-----------------|Thumb Finger|--------------------------
     if(structFingerState.Thumb==0)
     {
       structFingerState.Thumb="0";
-    }else if(structFingerState.Thumb>"100")
+    }else if(structFingerState.Thumb.toInt()>100)
     {
       structFingerState.Thumb="100";
     }
-    FingerStateJson["Thumb"] = structFingerState.Thumb;
-    // Serial.println(structFingerState.Thumb.Status);
-    // Serial.println(structFingerState.Thumb.Value);
+    FingerValue=structFingerState.Thumb.toInt();
+    FingerStateJson["Thumb"] =String(FingerValue);
     //-----------------|Middele Finger|--------------------------
     if(structFingerState.Middele==0)
     {
       structFingerState.Middele="0";
-    }else if(structFingerState.Middele>"100")
+    }else if(structFingerState.Middele.toInt()>100)
     {
       structFingerState.Middele="100";
     }
-    FingerStateJson["Middele"]= structFingerState.Middele;
-    // Serial.println(structFingerState.Middele.Status);
-    // Serial.println(structFingerState.Middele.Value);
+    FingerValue=structFingerState.Middele.toInt();
+    FingerStateJson["Middele"]= String(FingerValue);
     //-----------------|Index Finger|---------------------------
     if(structFingerState.Index==0)
     {
       structFingerState.Index="0";
-    }else if(structFingerState.Index>"100")
+    }else if(structFingerState.Index.toInt()>100)
     {
       structFingerState.Index="100";
     }
-    FingerStateJson["Index"] = structFingerState.Index;
-    // Serial.println(structFingerState.Index.Status);
-    // Serial.println(structFingerState.Index.Value);
+    FingerValue=structFingerState.Index.toInt();
+    FingerStateJson["Index"] = String(FingerValue);
     //-----------------|Ring Finger|----------------------------
     if(structFingerState.Ring==0)
     {
       structFingerState.Ring="0";
-    }else if(structFingerState.Ring>"100")
+    }else if(structFingerState.Ring.toInt()>100)
     {
       structFingerState.Ring="100";
     }
-    FingerStateJson["Ring"] = structFingerState.Ring;
-    // Serial.println(structFingerState.Ring.Status);
-    // Serial.println(structFingerState.Ring.Value);
+    FingerValue=structFingerState.Ring.toInt();
+    FingerStateJson["Ring"] = String(FingerValue);
     //-----------------|Pinky Finger|----------------------------
     if(structFingerState.Pinky==0)
     {
       structFingerState.Pinky="0";
-    }else if(structFingerState.Pinky>"100")
+    }else if(structFingerState.Pinky.toInt()>100)
     {
       structFingerState.Pinky="100";
     }
-    FingerStateJson["Pinky"] = structFingerState.Pinky;
-    // Serial.println(structFingerState.Pinky.Status);
-    // Serial.println(structFingerState.Pinky.Value);
+    FingerValue=structFingerState.Pinky.toInt();
+    FingerStateJson["Pinky"] = String(FingerValue);
+    
+    /*creat JSON struct */
     char json_string[256];
     serializeJson(FingerStateJson, json_string);
+    /*send JSON struct */
     Serial.println(json_string);
     SendFingerStates = 0;
   }
