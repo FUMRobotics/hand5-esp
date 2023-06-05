@@ -104,15 +104,20 @@ void setup()
   server.on("/Send", HTTP_GET, [](AsyncWebServerRequest *request)
             {
   response = request->getParam("PinkyValue");
-    structFingerState.Pinky=response->value();
+      if(response->value()!=NULL)
+        structFingerState.Pinky=response->value();
       response = request->getParam("RingValue");
-    structFingerState.Ring=response->value();
+      if(response->value()!=NULL)
+        structFingerState.Ring=response->value();
       response = request->getParam("IndexValue");
-    structFingerState.Index=response->value();
+      if(response->value()!=NULL)
+        structFingerState.Index=response->value();
       response = request->getParam("MiddleValue");
-    structFingerState.Middele=response->value();
+      if(response->value()!=NULL)
+        structFingerState.Middele=response->value();
       response = request->getParam("ThumbValue");
-    structFingerState.Thumb =response->value();
+      if(response->value()!=NULL)
+        structFingerState.Thumb =response->value();
       SendFingerStates=1;
   //-----------------|Refresh Page|----------------------------
     request->send_P(200, "text/html", index_html); });
@@ -133,7 +138,7 @@ void loop()
     //-----------------|Thumb Finger|--------------------------
     if(structFingerState.Thumb==0)
     {
-      structFingerState.Thumb="0";
+      // structFingerState.Thumb="0";
     }else if(structFingerState.Thumb.toInt()>100)
     {
       structFingerState.Thumb="100";
@@ -143,7 +148,7 @@ void loop()
     //-----------------|Middele Finger|--------------------------
     if(structFingerState.Middele==0)
     {
-      structFingerState.Middele="0";
+      // structFingerState.Middele="0";
     }else if(structFingerState.Middele.toInt()>100)
     {
       structFingerState.Middele="100";
@@ -153,7 +158,7 @@ void loop()
     //-----------------|Index Finger|---------------------------
     if(structFingerState.Index==0)
     {
-      structFingerState.Index="0";
+      // structFingerState.Index="0";
     }else if(structFingerState.Index.toInt()>100)
     {
       structFingerState.Index="100";
@@ -163,7 +168,7 @@ void loop()
     //-----------------|Ring Finger|----------------------------
     if(structFingerState.Ring==0)
     {
-      structFingerState.Ring="0";
+      // structFingerState.Ring="0";
     }else if(structFingerState.Ring.toInt()>100)
     {
       structFingerState.Ring="100";
@@ -173,7 +178,7 @@ void loop()
     //-----------------|Pinky Finger|----------------------------
     if(structFingerState.Pinky==0)
     {
-      structFingerState.Pinky="0";
+      // structFingerState.Pinky="0";
     }else if(structFingerState.Pinky.toInt()>100)
     {
       structFingerState.Pinky="100";
