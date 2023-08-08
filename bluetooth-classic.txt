@@ -13,7 +13,7 @@ void setup() {
   /* If no name is given, default 'ESP32' is applied */
   /* If you want to give your own name to ESP32 Bluetooth device, then */
   /* specify the name as an argument SerialBT.begin("myESP32Bluetooth"); */
-  SerialBT.begin("ESP32_HAND_BLE");
+  SerialBT.begin();
   Serial.println("Bluetooth Started! Ready to pair...");
 }
 
@@ -26,5 +26,5 @@ void loop() {
   {
     Serial.write(SerialBT.read());
   }
-  
+  delay(20);
 }
