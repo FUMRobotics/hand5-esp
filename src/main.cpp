@@ -2,15 +2,15 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "HAND";
-const char *password = "FUM_HAND";
+const char *WIFIssid = "HAND";
+const char *WIFIpassword = "FUM_HAND";
 
 // Your Domain name with URL path or IP address with path
-String serverName = "http://192.168.1.1/Send";
+String WIFIserverName = "http://192.168.1.1/Send";
 
-String ptr;
-StaticJsonDocument<200> doc;
-DeserializationError error;
+String UartString;
+StaticJsonDocument<200> JSONstruct;
+DeserializationError JSONerror;
 struct
 {
   uint8_t Pinky;
@@ -19,11 +19,12 @@ struct
   uint8_t Index;
   uint8_t Thumb;
 } HandFinger;
+
 void setup()
 {
   Serial2.begin(115200);
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFIssid, WIFIpassword);
   Serial.println("Connecting");
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -39,22 +40,21 @@ void loop()
 {
   if (Serial2.available())
   {
-    ptr = Serial2.readStringUntil('\n');
-    Serial.print(ptr);
-    error = deserializeJson(doc, ptr);
-    HandFinger.Index = doc["Index"];
-    HandFinger.Middle = doc["Middle"];
-    HandFinger.Pinky = doc["Pinky"];
-    HandFinger.Ring = doc["Ring"];
-    HandFinger.Thumb = doc["Thumb"];
-    if (error)
+    UartString = Serial2.readStringUntil('\n');
+    JSONerror = deserializeJson(JSONstruct, UartString);
+    if (JSONerror)
     {
       Serial.print(F("\ndeserializeJson() failed: "));
-      Serial.println(error.f_str());
+      Serial.println(JSONerror.f_str());
       return;
     }
+    HandFinger.Index = JSONstruct["Index"];
+    HandFinger.Middle = JSONstruct["Middle"];
+    HandFinger.Pinky = JSONstruct["Pinky"];
+    HandFinger.Ring = JSONstruct["Ring"];
+    HandFinger.Thumb = JSONstruct["Thumb"];
     //---------------------------- WIFI Communnication ---------------------------------------------
-    if (doc["Communication"] == "WIFI")
+    if (JSONstruct["Communication"] == "WIFI")
     {
       Serial.println("\n\nwifi start");
       // Check WiFi connection status
@@ -62,7 +62,7 @@ void loop()
       {
         HTTPClient http;
 
-        String serverPath = serverName + "?ThumbValue=" + HandFinger.Thumb + "&MiddleValue=" + HandFinger.Middle + "&IndexValue=" + HandFinger.Index + "&RingValue=" + HandFinger.Ring + "&PinkyValue=" + HandFinger.Pinky;
+        String serverPath = WIFIserverName + "?ThumbValue=" + HandFinger.Thumb + "&MiddleValue=" + HandFinger.Middle + "&IndexValue=" + HandFinger.Index + "&RingValue=" + HandFinger.Ring + "&PinkyValue=" + HandFinger.Pinky;
 
         // Your Domain name with URL path or IP address with path
         http.begin(serverPath.c_str());
@@ -94,7 +94,7 @@ void loop()
       }
     }
     //---------------------------- Bluetooth Communnication ---------------------------------------------
-    if (doc["Communication"] == "Bluetooth")
+    if (JSONstruct["Communication"] == "Bluetooth")
     {
       Serial.println("\n\nbluetooth start");
     }
