@@ -38,9 +38,9 @@ void setup()
 
 void loop()
 {
-  if (Serial2.available())
+  if (Serial.available())
   {
-    UartString = Serial2.readStringUntil('\n');
+    UartString = Serial.readStringUntil('\n');
     JSONerror = deserializeJson(JSONstruct, UartString);
     if (JSONerror)
     {
