@@ -6,6 +6,7 @@ writen by MH.Taji
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+#include <Arduino.h>
 #include <Arduino_JSON.h>
 
 //BLE server name
@@ -148,7 +149,7 @@ void loop() {
         Finger_Thumb_Characteristics.setValue(Fingers_Value);
         Finger_Thumb_Characteristics.notify();
         Serial.print(" Thumb :");
-        Serial.print(HandFinger.Thumb);
+        Serial.println(HandFinger.Thumb);
 
       lastTime = millis();
     }
