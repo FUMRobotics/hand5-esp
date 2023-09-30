@@ -32,23 +32,23 @@ bool deviceConnected = false;
 
 // Pinky Characteristic and Descriptor
   BLECharacteristic Finger_Pinky_Characteristics("e9eb3de6-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Pinky_Descriptor(BLEUUID((uint16_t)0x2901));
+  BLEDescriptor Finger_Pinky_Descriptor(BLEUUID((uint16_t)0x2902));
 
 // Ring Characteristic and Descriptor
   BLECharacteristic Finger_Ring_Characteristics("e9eb3f4e-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Ring_Descriptor(BLEUUID((uint16_t)0x2902));
+  BLEDescriptor Finger_Ring_Descriptor(BLEUUID((uint16_t)0x2903));
 
 // Middle Characteristic and Descriptor
   BLECharacteristic Finger_Middle_Characteristics("e9eb46b0-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Middle_Descriptor(BLEUUID((uint16_t)0x2903));
+  BLEDescriptor Finger_Middle_Descriptor(BLEUUID((uint16_t)0x2904));
 
 // Index Characteristic and Descriptor
   BLECharacteristic Finger_Index_Characteristics("e9eb482c-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Index_Descriptor(BLEUUID((uint16_t)0x2904));
+  BLEDescriptor Finger_Index_Descriptor(BLEUUID((uint16_t)0x2905));
 
 // Thumb Characteristic and Descriptor
   BLECharacteristic Finger_Thumb_Characteristics("e9eb499e-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Thumb_Descriptor(BLEUUID((uint16_t)0x2905));
+  BLEDescriptor Finger_Thumb_Descriptor(BLEUUID((uint16_t)0x2906));
 
 
 //Setup callbacks onConnect and onDisconnect
