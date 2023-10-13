@@ -1,5 +1,6 @@
 /*********
 writen by MH.Taji
+BLE Server
 *********/
 
 #include <BLEDevice.h>
@@ -31,8 +32,8 @@ bool deviceConnected = false;
 #define SERVICE_UUID "e9eb3b02-5eda-11ee-8c99-0242ac120002"
 
 // Pinky Characteristic and Descriptor
-  BLECharacteristic Finger_Pinky_Characteristics("e9eb3de6-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Pinky_Descriptor(BLEUUID((uint16_t)0x2902));
+  BLECharacteristic Finger_Pinky_Characteristics("3777f9a2-69d3-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+  BLEDescriptor Finger_Pinky_Descriptor(BLEUUID((uint16_t)0x2903));
 
 // Ring Characteristic and Descriptor
   BLECharacteristic Finger_Ring_Characteristics("e9eb3f4e-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
@@ -47,7 +48,7 @@ bool deviceConnected = false;
   BLEDescriptor Finger_Index_Descriptor(BLEUUID((uint16_t)0x2905));
 
 // Thumb Characteristic and Descriptor
-  BLECharacteristic Finger_Thumb_Characteristics("e9eb499e-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+  BLECharacteristic Finger_Thumb_Characteristics("08c73b62-69d9-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
   BLEDescriptor Finger_Thumb_Descriptor(BLEUUID((uint16_t)0x2906));
 
 
@@ -78,23 +79,23 @@ void setup() {
   // Create BLE Characteristics and Create a BLE Descriptor
   //Pinky
     HANDService->addCharacteristic(&Finger_Pinky_Characteristics);
-    Finger_Pinky_Descriptor.setValue("Pinky Finger");
+    Finger_Pinky_Descriptor.setValue("Pinky");
     Finger_Pinky_Characteristics.addDescriptor(&Finger_Pinky_Descriptor);
   //Ring
     HANDService->addCharacteristic(&Finger_Ring_Characteristics);
-    Finger_Ring_Descriptor.setValue("Ring Finger");
+    Finger_Ring_Descriptor.setValue("Ring");
     Finger_Ring_Characteristics.addDescriptor(&Finger_Ring_Descriptor);
   //Middle
     HANDService->addCharacteristic(&Finger_Middle_Characteristics);
-    Finger_Middle_Descriptor.setValue("Middle Finger");
+    Finger_Middle_Descriptor.setValue("Middle");
     Finger_Middle_Characteristics.addDescriptor(&Finger_Middle_Descriptor);
   //Index
     HANDService->addCharacteristic(&Finger_Index_Characteristics);
-    Finger_Index_Descriptor.setValue("Index Finger");
+    Finger_Index_Descriptor.setValue("Index");
     Finger_Index_Characteristics.addDescriptor(&Finger_Index_Descriptor);
   //Thumb
     HANDService->addCharacteristic(&Finger_Thumb_Characteristics);
-    Finger_Thumb_Descriptor.setValue("Thumb Finger");
+    Finger_Thumb_Descriptor.setValue("Thumb");
     Finger_Thumb_Characteristics.addDescriptor(&Finger_Thumb_Descriptor);
 
   // Start the service
