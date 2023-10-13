@@ -1,8 +1,6 @@
 /*********
-  Rui Santos
-  Complete instructions at https://RandomNerdTutorials.com/esp32-ble-server-client/
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+writen by MH.Taji
+BLE Client
 *********/
 
 #include "BLEDevice.h"
@@ -26,7 +24,7 @@ struct
 #define SERVICE_UUID "e9eb3b02-5eda-11ee-8c99-0242ac120002"
 
 // Pinky Characteristic
-static BLEUUID PinkyCharacteristicUUID("e9eb3de6-5eda-11ee-8c99-0242ac120002");
+static BLEUUID PinkyCharacteristicUUID("3777f9a2-69d3-11ee-8c99-0242ac120002");
 
 // Ring Characteristic
 static BLEUUID RingCharacteristicUUID("e9eb3f4e-5eda-11ee-8c99-0242ac120002");
@@ -38,7 +36,7 @@ static BLEUUID MiddleCharacteristicUUID("e9eb46b0-5eda-11ee-8c99-0242ac120002");
 static BLEUUID IndexCharacteristicUUID("e9eb482c-5eda-11ee-8c99-0242ac120002");
 
 // Thumb Characteristic
-static BLEUUID ThumbCharacteristicUUID("e9eb499e-5eda-11ee-8c99-0242ac120002");
+static BLEUUID ThumbCharacteristicUUID("08c73b62-69d9-11ee-8c99-0242ac120002");
 
 //Flags stating if should begin connecting and if the connection is up
 static boolean doConnect = false;
@@ -189,7 +187,7 @@ void setup() {
   BLEScan* pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true);
-  pBLEScan->start(30);
+  pBLEScan->start(50);
 }
 
 void loop() {
