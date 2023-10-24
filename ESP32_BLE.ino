@@ -8,7 +8,6 @@ BLE Server
 #include <BLEUtils.h>
 #include <BLE2902.h>
 #include <Arduino.h>
-#include <Arduino_JSON.h>
 
 //BLE server name
 #define bleServerName "Hand_ESP32"
@@ -31,25 +30,18 @@ bool deviceConnected = false;
 // See the following for generating UUIDs:
 #define SERVICE_UUID "e9eb3b02-5eda-11ee-8c99-0242ac120002"
 
-// Pinky Characteristic and Descriptor
-  BLECharacteristic Finger_Pinky_Characteristics("3777f9a2-69d3-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Pinky_Descriptor(BLEUUID((uint16_t)0x2903));
 
-// Ring Characteristic and Descriptor
-  BLECharacteristic Finger_Ring_Characteristics("e9eb3f4e-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Ring_Descriptor(BLEUUID((uint16_t)0x2903));
+// Position Characteristic and Descriptor
+  BLECharacteristic Position_Characteristics("e9eb3f4e-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+  BLEDescriptor Position_Descriptor(BLEUUID((uint16_t)0x2903));
 
-// Middle Characteristic and Descriptor
-  BLECharacteristic Finger_Middle_Characteristics("e9eb46b0-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Middle_Descriptor(BLEUUID((uint16_t)0x2904));
+// Current Characteristic and Descriptor
+  BLECharacteristic Current_Characteristics("e9eb46b0-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+  BLEDescriptor Current_Descriptor(BLEUUID((uint16_t)0x2904));
 
-// Index Characteristic and Descriptor
-  BLECharacteristic Finger_Index_Characteristics("e9eb482c-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Index_Descriptor(BLEUUID((uint16_t)0x2905));
-
-// Thumb Characteristic and Descriptor
-  BLECharacteristic Finger_Thumb_Characteristics("08c73b62-69d9-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor Finger_Thumb_Descriptor(BLEUUID((uint16_t)0x2906));
+// setpoint Characteristic and Descriptor
+  BLECharacteristic Setpoint_Characteristics("e9eb482c-5eda-11ee-8c99-0242ac120002", BLECharacteristic::PROPERTY_NOTIFY);
+  BLEDescriptor Setpoint_Descriptor(BLEUUID((uint16_t)0x2905));
 
 
 //Setup callbacks onConnect and onDisconnect
@@ -76,27 +68,18 @@ void setup() {
   // Create the BLE Service
   BLEService *HANDService = pServer->createService(SERVICE_UUID);
 
-  // Create BLE Characteristics and Create a BLE Descriptor
-  //Pinky
-    HANDService->addCharacteristic(&Finger_Pinky_Characteristics);
-    Finger_Pinky_Descriptor.setValue("Pinky");
-    Finger_Pinky_Characteristics.addDescriptor(&Finger_Pinky_Descriptor);
-  //Ring
-    HANDService->addCharacteristic(&Finger_Ring_Characteristics);
-    Finger_Ring_Descriptor.setValue("Ring");
-    Finger_Ring_Characteristics.addDescriptor(&Finger_Ring_Descriptor);
-  //Middle
-    HANDService->addCharacteristic(&Finger_Middle_Characteristics);
-    Finger_Middle_Descriptor.setValue("Middle");
-    Finger_Middle_Characteristics.addDescriptor(&Finger_Middle_Descriptor);
-  //Index
-    HANDService->addCharacteristic(&Finger_Index_Characteristics);
-    Finger_Index_Descriptor.setValue("Index");
-    Finger_Index_Characteristics.addDescriptor(&Finger_Index_Descriptor);
-  //Thumb
-    HANDService->addCharacteristic(&Finger_Thumb_Characteristics);
-    Finger_Thumb_Descriptor.setValue("Thumb");
-    Finger_Thumb_Characteristics.addDescriptor(&Finger_Thumb_Descriptor);
+  //Position
+    HANDService->addCharacteristic(&Position_Characteristics);
+    Position_Descriptor.setValue("Position");
+    Position_Characteristics.addDescriptor(&Position_Descriptor);
+  //Current
+    HANDService->addCharacteristic(&Current_Characteristics);
+    Current_Descriptor.setValue("Current");
+    Current_Characteristics.addDescriptor(&Current_Descriptor);
+  //setpoint
+    HANDService->addCharacteristic(&Setpoint_Characteristics);
+    Setpoint_Descriptor.setValue("Setpoint");
+    Setpoint_Characteristics.addDescriptor(&Setpoint_Descriptor);
 
   // Start the service
   HANDService->start();
@@ -119,38 +102,34 @@ void loop() {
       HandFinger.Index++;
       HandFinger.Thumb++;
       
-      static char Fingers_Value[6];
+      String Fingers_Value;
 
-        //Set Pinky Characteristic value and notify connected client
-        dtostrf(HandFinger.Pinky, 6, 2, Fingers_Value);
-        Finger_Pinky_Characteristics.setValue(Fingers_Value);
-        Finger_Pinky_Characteristics.notify();
-        Serial.print(" Pinky :");
-        Serial.print(HandFinger.Pinky);
-        //Set Ring Characteristic value and notify connected client
-        dtostrf(HandFinger.Ring, 6, 2, Fingers_Value);
-        Finger_Ring_Characteristics.setValue(Fingers_Value);
-        Finger_Ring_Characteristics.notify();
-        Serial.print(" Ring :");
-        Serial.print(HandFinger.Ring);
-        //Set Middle Characteristic value and notify connected client
-        dtostrf(HandFinger.Middle, 6, 2, Fingers_Value);
-        Finger_Middle_Characteristics.setValue(Fingers_Value);
-        Finger_Middle_Characteristics.notify();
-        Serial.print(" Middle :");
-        Serial.print(HandFinger.Middle);
-        //Set Pinky Characteristic value and notify connected client
-        dtostrf(HandFinger.Index, 6, 2, Fingers_Value);
-        Finger_Index_Characteristics.setValue(Fingers_Value);
-        Finger_Index_Characteristics.notify();
-        Serial.print(" Index :");
-        Serial.print(HandFinger.Index);
-        //Set Thumb Characteristic value and notify connected client
-        dtostrf(HandFinger.Thumb, 6, 2, Fingers_Value);
-        Finger_Thumb_Characteristics.setValue(Fingers_Value);
-        Finger_Thumb_Characteristics.notify();
-        Serial.print(" Thumb :");
-        Serial.println(HandFinger.Thumb);
+        //Set Setpoint  Characteristic value and notify connected client
+        //set Pinky value 
+        Fingers_Value="{\"P\":\""+String(HandFinger.Pinky*100)+"\"}";
+        Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+        Setpoint_Characteristics.notify();
+        Serial.print(Fingers_Value);
+        //set Ring value 
+        Fingers_Value="{\"R\":\""+String(HandFinger.Ring*100)+"\"}";
+        Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+        Setpoint_Characteristics.notify();
+        Serial.print(Fingers_Value);
+        //set Middle value 
+        Fingers_Value="{\"M\":\""+String(HandFinger.Middle*100)+"\"}";
+        Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+        Setpoint_Characteristics.notify();
+        Serial.print(Fingers_Value);
+        //set Index value 
+        Fingers_Value="{\"I\":\""+String(HandFinger.Index*100)+"\"}";
+        Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+        Setpoint_Characteristics.notify();
+        Serial.print(Fingers_Value);
+        //set Thumb value 
+        Fingers_Value="{\"T\":\""+String(HandFinger.Thumb*100)+"\"}";
+        Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+        Setpoint_Characteristics.notify();
+        Serial.print(Fingers_Value);
 
       lastTime = millis();
     }
