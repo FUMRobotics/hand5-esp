@@ -23,20 +23,15 @@ struct
 // See the following for generating UUIDs:
 #define SERVICE_UUID "e9eb3b02-5eda-11ee-8c99-0242ac120002"
 
-// Pinky Characteristic
-static BLEUUID PinkyCharacteristicUUID("3777f9a2-69d3-11ee-8c99-0242ac120002");
 
-// Ring Characteristic
-static BLEUUID RingCharacteristicUUID("e9eb3f4e-5eda-11ee-8c99-0242ac120002");
+// position Characteristic
+static BLEUUID PositionCharacteristicUUID("e9eb3f4e-5eda-11ee-8c99-0242ac120002");
 
-// Middle Characteristic
-static BLEUUID MiddleCharacteristicUUID("e9eb46b0-5eda-11ee-8c99-0242ac120002");
+// Current  Characteristic
+static BLEUUID CurrentCharacteristicUUID("e9eb46b0-5eda-11ee-8c99-0242ac120002");
 
-// Index Characteristic
-static BLEUUID IndexCharacteristicUUID("e9eb482c-5eda-11ee-8c99-0242ac120002");
-
-// Thumb Characteristic
-static BLEUUID ThumbCharacteristicUUID("08c73b62-69d9-11ee-8c99-0242ac120002");
+// Setpoint Characteristic
+static BLEUUID SetpointCharacteristicUUID("e9eb482c-5eda-11ee-8c99-0242ac120002");
 
 //Flags stating if should begin connecting and if the connection is up
 static boolean doConnect = false;
@@ -46,62 +41,43 @@ static boolean connected = false;
 static BLEAddress *pServerAddress;
  
 //Characteristicd that we want to read
-static BLERemoteCharacteristic* Pinky_Finger_Charachteristic;
-static BLERemoteCharacteristic* Ring_Finger_Charachteristic;
-static BLERemoteCharacteristic* Middle_Finger_Charachteristic;
-static BLERemoteCharacteristic* Index_Finger_Charachteristic;
-static BLERemoteCharacteristic* Thumb_Finger_Charachteristic;
+static BLERemoteCharacteristic* Position_Charachteristic;
+static BLERemoteCharacteristic* Current_Charachteristic;
+static BLERemoteCharacteristic* Setpoint_Charachteristic;
 
 //Activate notify
 const uint8_t notificationOn[] = {0x1, 0x0};
 const uint8_t notificationOff[] = {0x0, 0x0};
 
-char* PinkyChar;
-char* RingChar;
-char* MiddleChar;
-char* IndexChar;
-char* ThumbChar;
+char* PositionChar;
+char* CurrentChar;
+char* SetpointChar;
 
 //Flags to check whether new temperature and humidity readings are available
-boolean newPinkyValue = false;
-boolean newRingValue = false;
-boolean newMiddleValue = false;
-boolean newIndexValue = false;
-boolean newThumbValue = false;
+boolean newPosition = false;
+boolean newCurrent = false;
+boolean newsetpoint = false;
 
-//When the BLE Server sends a new Pinky position value reading with the notify property
-static void PinkyNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
-                                        uint8_t* pData, size_t length, bool isNotify) {
-  PinkyChar = (char*)pData;
-  newPinkyValue = true;
-}
 //When the BLE Server sends a new Ring position value reading with the notify property
-static void RingNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
+static void PositionNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
                                         uint8_t* pData, size_t length, bool isNotify) {
-  //store Ring value
-  RingChar = (char*)pData;
-  newRingValue = true;
+  //store position value
+  PositionChar = (char*)pData;
+  newPosition= true;
 }
 //When the BLE Server sends a new Middle position value reading with the notify property
-static void MiddleNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
+static void CurrentNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
                                         uint8_t* pData, size_t length, bool isNotify) {
-  //store Middle value
-  MiddleChar= (char*)pData;
-  newMiddleValue = true;
+  //store Current value
+  CurrentChar= (char*)pData;
+  newCurrent = true;
 }
 //When the BLE Server sends a new Index position value reading with the notify property
-static void IndexNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
+static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
                                         uint8_t* pData, size_t length, bool isNotify) {
-  //store Index value
-  IndexChar = (char*)pData;
-  newIndexValue = true;
-}
-//When the BLE Server sends a new Thumb position value reading with the notify property
-static void ThumbNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
-                                        uint8_t* pData, size_t length, bool isNotify) {
-  //store Thumb value
-  ThumbChar= (char*)pData;
-  newThumbValue = true;
+  //setpoint Index value
+  SetpointChar = (char*)pData;
+  newsetpoint = true;
 }
 
 //Connect to the BLE Server that has the name, Service, and Characteristics
@@ -121,24 +97,20 @@ bool connectToServer(BLEAddress pAddress) {
   }
  
   // Obtain a reference to the characteristics in the service of the remote BLE server.
-  Pinky_Finger_Charachteristic = pRemoteService->getCharacteristic(PinkyCharacteristicUUID);
-  Ring_Finger_Charachteristic = pRemoteService->getCharacteristic(RingCharacteristicUUID);
-  Middle_Finger_Charachteristic = pRemoteService->getCharacteristic(MiddleCharacteristicUUID);
-  Index_Finger_Charachteristic = pRemoteService->getCharacteristic(IndexCharacteristicUUID);
-  Thumb_Finger_Charachteristic = pRemoteService->getCharacteristic(ThumbCharacteristicUUID);
+  Position_Charachteristic = pRemoteService->getCharacteristic(PositionCharacteristicUUID);
+  Current_Charachteristic = pRemoteService->getCharacteristic(CurrentCharacteristicUUID);
+  Setpoint_Charachteristic = pRemoteService->getCharacteristic(SetpointCharacteristicUUID);
 
-  if (Pinky_Finger_Charachteristic == nullptr ||Ring_Finger_Charachteristic == nullptr|| Middle_Finger_Charachteristic == nullptr||Index_Finger_Charachteristic == nullptr||Thumb_Finger_Charachteristic == nullptr) {
+  if (Position_Charachteristic == nullptr ||Current_Charachteristic == nullptr||Setpoint_Charachteristic == nullptr) {
     Serial.print("Failed to find our characteristic UUID");
     return false;
   }
   Serial.println(" - Found our characteristics");
  
   //Assign callback functions for the Characteristics
-  Pinky_Finger_Charachteristic->registerForNotify(PinkyNotifyCallback);
-  Ring_Finger_Charachteristic->registerForNotify(RingNotifyCallback);
-  Middle_Finger_Charachteristic->registerForNotify(MiddleNotifyCallback);
-  Index_Finger_Charachteristic->registerForNotify(IndexNotifyCallback);
-  Thumb_Finger_Charachteristic->registerForNotify(ThumbNotifyCallback);
+  Position_Charachteristic->registerForNotify(PositionNotifyCallback);
+  Current_Charachteristic->registerForNotify(CurrentNotifyCallback);
+  Setpoint_Charachteristic->registerForNotify(SetpointNotifyCallback);
   return true;
 }
 
@@ -156,21 +128,12 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
  
 //function that prints the latest sensor readings in the OLED display
 void printReadings(){
-  Serial.print(newPinkyValue);
-  Serial.print("Pinky:");
-  Serial.println(PinkyChar);
-  Serial.print(newRingValue);
-  Serial.print("Ring:");
-  Serial.println(RingChar);
-  Serial.print(newMiddleValue);
-  Serial.print("Middle:");
-  Serial.println(MiddleChar);
-  Serial.print(newIndexValue);
-  Serial.print("Index:");
-  Serial.println(IndexChar);
-  Serial.print(newThumbValue);
-  Serial.print("Thumb:");
-  Serial.println(ThumbChar);
+  Serial.print(newPosition);
+  Serial.println(PositionChar);
+  Serial.print(newCurrent);
+  Serial.println(CurrentChar);
+  Serial.print(newsetpoint);
+  Serial.println(SetpointChar);
 }
 
 void setup() {
@@ -198,16 +161,9 @@ void loop() {
     if (connectToServer(*pServerAddress)) {
       Serial.println("We are now connected to the BLE Server.");
       //Activate the Notify property of each Characteristic
-      Pinky_Finger_Charachteristic->canNotify();
-      // Pinky_Finger_Charachteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t*)notificationOn, 2, true);
-      Ring_Finger_Charachteristic->canNotify();
-      // Ring_Finger_Charachteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t*)notificationOn, 2, true);
-      Middle_Finger_Charachteristic->canNotify();
-      // Middle_Finger_Charachteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t*)notificationOn, 2, true);
-      Index_Finger_Charachteristic->canNotify();
-      // Index_Finger_Charachteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t*)notificationOn, 2, true);
-      Thumb_Finger_Charachteristic->canNotify();
-      // Thumb_Finger_Charachteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t*)notificationOn, 2, true);
+      Position_Charachteristic->canNotify();
+      Current_Charachteristic->canNotify();
+      Setpoint_Charachteristic->canNotify();
       connected = true;
     } else {
       Serial.println("We have failed to connect to the server; Restart your device to scan for nearby BLE server again.");
@@ -215,13 +171,11 @@ void loop() {
     doConnect = false;
   }
   //if new temperature readings are available, print in the OLED
-  if (newPinkyValue || newRingValue || newMiddleValue || newIndexValue || newThumbValue){
+  if (newPosition|| newCurrent|| newsetpoint){
     printReadings();
-    newPinkyValue = false;
-    newRingValue = false;
-    newMiddleValue = false;
-    newIndexValue = false;
-    newThumbValue = false;
+    newPosition = false;
+    newCurrent = false;
+    newsetpoint = false;
   }
   delay(1000); // Delay a second between loops.
 }
