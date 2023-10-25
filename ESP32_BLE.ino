@@ -76,7 +76,33 @@ static void CurrentNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteris
 static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, 
                                         uint8_t* pData, size_t length, bool isNotify) {
   //setpoint Index value
+  String strFinger;
   SetpointChar = (char*)pData;
+  switch (SetpointChar[2]) {
+  case 'P':
+  Serial.print("P");
+  strFinger=String(SetpointChar[6]);
+  Serial.print(strFinger);
+  HandFinger.Pinky=strFinger.toFloat();
+  Serial.println(HandFinger.Pinky);
+  break;
+  case 'R':
+  strFinger=String(SetpointChar[6]);
+  HandFinger.Ring=strFinger.toFloat();
+  break;
+  case 'M':
+  strFinger=String(SetpointChar[6]);
+  HandFinger.Middle=strFinger.toFloat();
+  break;
+  case 'I':
+  strFinger=String(SetpointChar[6]);
+  HandFinger.Index=strFinger.toFloat();
+  break;
+  case 'T':
+  strFinger=String(SetpointChar[6]);
+  HandFinger.Thumb=strFinger.toFloat();
+  break;
+  }
   newsetpoint = true;
 }
 
@@ -128,12 +154,22 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
  
 //function that prints the latest sensor readings in the OLED display
 void printReadings(){
-  Serial.print(newPosition);
-  Serial.println(PositionChar);
-  Serial.print(newCurrent);
-  Serial.println(CurrentChar);
-  Serial.print(newsetpoint);
-  Serial.println(SetpointChar);
+  Serial.print("Pinky:");
+  Serial.print(HandFinger.Pinky);
+  Serial.print("Ring:");
+  Serial.print(HandFinger.Ring);
+  Serial.print("Middle:");
+  Serial.print(HandFinger.Middle);
+  Serial.print("Index:");
+  Serial.print(HandFinger.Index);
+  Serial.print("Thumb:");
+  Serial.println(HandFinger.Thumb);
+  // Serial.print(newPosition);
+  // Serial.println(PositionChar);
+  // Serial.print(newCurrent);
+  // Serial.println(CurrentChar);
+  // Serial.print(newsetpoint);
+  // Serial.println(SetpointChar);
 }
 
 void setup() {
@@ -172,7 +208,7 @@ void loop() {
   }
   //if new temperature readings are available, print in the OLED
   if (newPosition|| newCurrent|| newsetpoint){
-    printReadings();
+    // printReadings();
     newPosition = false;
     newCurrent = false;
     newsetpoint = false;
