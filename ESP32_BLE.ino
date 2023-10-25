@@ -106,30 +106,31 @@ void loop() {
 
         //Set Setpoint  Characteristic value and notify connected client
         //set Pinky value 
-        Fingers_Value="{\"P\":\""+String(HandFinger.Pinky*100)+"\"}";
+        Fingers_Value="{\"P\":\""+String(HandFinger.Pinky)+"\"}";
         Setpoint_Characteristics.setValue(Fingers_Value.c_str());
         Setpoint_Characteristics.notify();
-        Serial.print(Fingers_Value);
+        Serial.println(Fingers_Value);
         //set Ring value 
-        Fingers_Value="{\"R\":\""+String(HandFinger.Ring*100)+"\"}";
+        Fingers_Value="{\"R\":\""+String(HandFinger.Ring)+"\"}";
         Setpoint_Characteristics.setValue(Fingers_Value.c_str());
         Setpoint_Characteristics.notify();
-        Serial.print(Fingers_Value);
+        Serial.println(Fingers_Value);
         //set Middle value 
-        Fingers_Value="{\"M\":\""+String(HandFinger.Middle*100)+"\"}";
+        Fingers_Value="{\"M\":\""+String(HandFinger.Middle)+"\"}";
         Setpoint_Characteristics.setValue(Fingers_Value.c_str());
         Setpoint_Characteristics.notify();
-        Serial.print(Fingers_Value);
+        Serial.println(Fingers_Value);
         //set Index value 
-        Fingers_Value="{\"I\":\""+String(HandFinger.Index*100)+"\"}";
+        Fingers_Value="{\"I\":\""+String(HandFinger.Index)+"\"}";
         Setpoint_Characteristics.setValue(Fingers_Value.c_str());
         Setpoint_Characteristics.notify();
-        Serial.print(Fingers_Value);
+        Serial.println(Fingers_Value);
         //set Thumb value 
-        Fingers_Value="{\"T\":\""+String(HandFinger.Thumb*100)+"\"}";
+        Fingers_Value="{\"T\":\""+String(HandFinger.Thumb)+"\"}";
         Setpoint_Characteristics.setValue(Fingers_Value.c_str());
         Setpoint_Characteristics.notify();
-        Serial.print(Fingers_Value);
+        Serial.println(Fingers_Value);
+        Serial.println("***");
 
       lastTime = millis();
     }
