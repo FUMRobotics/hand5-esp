@@ -1,6 +1,6 @@
 /*********
 writen by MH.Taji
-BLE Server
+BLE Server (PC)
 *********/
 
 #include <BLEDevice.h>
@@ -14,6 +14,8 @@ BLE Server
 
 bool new_current = 0;
 bool new_Position = 0;
+bool RXuart=0;
+String rxUART_Buf;
 
 struct
 {
@@ -167,6 +169,7 @@ void printReadings_Position() {
 void setup() {
   // Start serial communication
   Serial.begin(115200);
+  Serial2.begin(115200);
 
   // Create the BLE Device
   BLEDevice::init(bleServerName);
@@ -260,5 +263,10 @@ void loop() {
       printReadings_Position();
       new_Position = false;
     }
+  }
+  if (Serial2.available()) 
+  {
+    rxUART_Buf =Serial2.readStringUntil('\n');
+    Serial.println(rxUART_Buf);
   }
 }
