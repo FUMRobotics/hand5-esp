@@ -16,7 +16,7 @@ bool new_current = 0;
 bool new_Position = 0;
 bool RXuart=0;
 String rxUART_Buf;
-
+  uint8_t counter_uart=0;
 struct
 {
   float Pinky;
@@ -204,7 +204,7 @@ void setup() {
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pServer->getAdvertising()->start();
   Serial.println("Waiting a client connection to notify...");
-
+  Serial.print('\n');
   HandFinger.Pinky = 0;
   HandFinger.Ring = 0.1;
   HandFinger.Middle = 0.2;
@@ -264,9 +264,8 @@ void loop() {
       new_Position = false;
     }
   }
-  if (Serial2.available()) 
-  {
-    rxUART_Buf =Serial2.readStringUntil('\n');
-    Serial.println(rxUART_Buf);
-  }
+  //for test uart in matlab
+  counter_uart++;
+  Serial.println(counter_uart);
+  delay(500);
 }
