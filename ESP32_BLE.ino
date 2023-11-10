@@ -265,7 +265,7 @@ void loop() {
     }
   }
   //for test uart in matlab
-  counter_uart++;
+  counter_uart=rand();
   Serial.println(counter_uart);
   delay(500);
 }
