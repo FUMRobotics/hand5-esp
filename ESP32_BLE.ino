@@ -14,9 +14,9 @@ BLE Server (PC)
 
 bool new_current = 0;
 bool new_Position = 0;
-bool RXuart=0;
+bool RXuart = 0;
 String rxUART_Buf;
-  uint8_t counter_uart=0;
+uint8_t counter_uart = 0;
 struct
 {
   float Pinky;
@@ -142,29 +142,31 @@ class PositionCallbacks : public BLECharacteristicCallbacks {
 };
 void printReadings_Current() {
   Serial.println("*-*-*-*-*-*-*-Current-*-*-*-*-*-*-*");
-  Serial.print("Pinky:");
-  Serial.print(HandCurrent.Pinky);
-  Serial.print("Ring:");
-  Serial.print(HandCurrent.Ring);
-  Serial.print("Middle:");
-  Serial.print(HandCurrent.Middle);
-  Serial.print("Index:");
-  Serial.print(HandCurrent.Index);
-  Serial.print("Thumb:");
-  Serial.println(HandCurrent.Thumb);
+  String strCurrent;
+      strCurrent = "{PP:" + String(HandCurrent.Pinky) + "}";
+  Serial.println(strCurrent);
+      strCurrent = "{PR:" + String(HandCurrent.Ring) + "}";
+  Serial.println(strCurrent);
+      strCurrent = "{PM:" + String(HandCurrent.Middle) + "}";
+  Serial.println(strCurrent);
+      strCurrent = "{PI:" + String(HandCurrent.Index) + "}";
+  Serial.println(strCurrent);
+      strCurrent = "{PT:" + String(HandCurrent.Thumb) + "}";
+  Serial.println(strCurrent);
 }
 void printReadings_Position() {
   Serial.println("-------Position-------");
-  Serial.print("Pinky:");
-  Serial.print(HandPosition.Pinky);
-  Serial.print("Ring:");
-  Serial.print(HandPosition.Ring);
-  Serial.print("Middle:");
-  Serial.print(HandPosition.Middle);
-  Serial.print("Index:");
-  Serial.print(HandPosition.Index);
-  Serial.print("Thumb:");
-  Serial.print(HandPosition.Thumb);
+  String strposition;
+      strposition = "{CP:" + String(HandPosition.Pinky) + "}";
+  Serial.println(strposition);
+      strposition = "{CR:" + String(HandPosition.Ring) + "}";
+  Serial.println(strposition);
+      strposition = "{CM:" + String(HandPosition.Middle) + "}";
+  Serial.println(strposition);
+      strposition = "{CI:" + String(HandPosition.Index) + "}";
+  Serial.println(strposition);
+      strposition = "{CT:" + String(HandPosition.Thumb) + "}";
+  Serial.println(strposition);
 }
 void setup() {
   // Start serial communication
@@ -265,7 +267,19 @@ void loop() {
     }
   }
   //for test uart in matlab
-  counter_uart=rand();
-  Serial.println(counter_uart);
+
+  // Serial.println(counter_uart);
+  HandPosition.Pinky = rand()%100;
+  HandPosition.Ring = rand()%100;
+  HandPosition.Middle = rand()%100;
+  HandPosition.Index = rand()%100;
+  HandPosition.Thumb = rand()%100;
+  HandCurrent.Pinky = rand()%100;
+  HandCurrent.Ring = rand()%100;
+  HandCurrent.Middle = rand()%100;
+  HandCurrent.Index = rand()%100;
+  HandCurrent.Thumb = rand()%100;
+  printReadings_Position();
+  printReadings_Current();
   delay(500);
 }
