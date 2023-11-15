@@ -87,7 +87,7 @@ static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteri
       break;
     case 'R':
       strFinger = String(SetpointChar);
-      HandSetPoint.Ring =  strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Ring = strFinger.substring(6, length - 2).toFloat();
       break;
     case 'M':
       strFinger = String(SetpointChar);
@@ -95,11 +95,11 @@ static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteri
       break;
     case 'I':
       strFinger = String(SetpointChar);
-      HandSetPoint.Index =  strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Index = strFinger.substring(6, length - 2).toFloat();
       break;
     case 'T':
       strFinger = String(SetpointChar);
-      HandSetPoint.Thumb =  strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Thumb = strFinger.substring(6, length - 2).toFloat();
       break;
   }
   newsetpoint = true;
@@ -111,13 +111,13 @@ bool connectToServer(BLEAddress pAddress) {
 
   // Connect to the remove BLE Server.
   pClient->connect(pAddress);
-  Serial.println(" - Connected to server");
+  log_e(" - Connected to server");
 
   // Obtain a reference to the service we are after in the remote BLE server.
   BLERemoteService* pRemoteService = pClient->getService(SERVICE_UUID);
   if (pRemoteService == nullptr) {
-    Serial.print("Failed to find our service UUID: ");
-    Serial.println(SERVICE_UUID);
+    log_e("Failed to find our service UUID: ");
+    log_e(SERVICE_UUID);
     return (false);
   }
 
@@ -127,10 +127,10 @@ bool connectToServer(BLEAddress pAddress) {
   Setpoint_Charachteristic = pRemoteService->getCharacteristic(SetpointCharacteristicUUID);
 
   if (Position_Charachteristic == nullptr || Current_Charachteristic == nullptr || Setpoint_Charachteristic == nullptr) {
-    Serial.print("Failed to find our characteristic UUID");
+    log_e("Failed to find our characteristic UUID");
     return false;
   }
-  Serial.println(" - Found our characteristics");
+  log_e(" - Found our characteristics");
 
   //Assign callback functions for the Characteristics
   // Position_Charachteristic->registerForNotify(PositionNotifyCallback);
@@ -146,29 +146,22 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
       advertisedDevice.getScan()->stop();                              //Scan can be stopped, we found what we are looking for
       pServerAddress = new BLEAddress(advertisedDevice.getAddress());  //Address of advertiser is the one we need
       doConnect = true;                                                //Set indicator, stating that we are ready to connect
-      Serial.println("Device found. Connecting!");
+      log_e("Device found. Connecting!");
     }
   }
 };
 
-//function that prints the latest sensor readings in the OLED display
+//function that prints the received setpoint
 void printReadings() {
-  Serial.print("Pinky:");
-  Serial.print(HandSetPoint.Pinky);
-  Serial.print("Ring:");
-  Serial.print(HandSetPoint.Ring);
-  Serial.print("Middle:");
-  Serial.print(HandSetPoint.Middle);
-  Serial.print("Index:");
-  Serial.print(HandSetPoint.Index);
-  Serial.print("Thumb:");
-  Serial.println(HandSetPoint.Thumb);
+  String setpoint_str;
+  setpoint_str = "{P:" + String(HandSetPoint.Pinky) + "R:" + String(HandSetPoint.Ring) + "M:" + String(HandSetPoint.Middle) + "I:" + String(HandSetPoint.Index) + "T:" + String(HandSetPoint.Thumb) + "}";
+  Serial.println(setpoint_str);
 }
 
 void setup() {
   //Start serial communication
   Serial.begin(115200);
-  Serial.println("Starting Arduino BLE Client application...");
+  log_e("Starting Arduino BLE Client application...");
 
   //Init BLE device
   BLEDevice::init("");
@@ -188,12 +181,12 @@ void loop() {
   // connected we set the connected flag to be true.
   if (doConnect == true) {
     if (connectToServer(*pServerAddress)) {
-      Serial.println("We are now connected to the BLE Server.");
+      log_e("We are now connected to the BLE Server.");
       //Activate the Notify property of each Characteristic
       Setpoint_Charachteristic->canNotify();
       connected = true;
     } else {
-      Serial.println("We have failed to connect to the server; Restart your device to scan for nearby BLE server again.");
+      log_e("We have failed to connect to the server; Restart your device to scan for nearby BLE server again.");
     }
     doConnect = false;
   }
@@ -206,56 +199,56 @@ void loop() {
     HandCurrent.Ring++;
     String CurrentValue;
     //set Pinky value
-    Serial.println("------------- | Current |---------------");
+    log_e("------------- | Current |---------------");
     CurrentValue = "{\"P\":\"" + String(HandCurrent.Pinky) + "\"}";
     Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    Serial.print(CurrentValue);
+    log_e(CurrentValue);
     //set Ring value
     CurrentValue = "{\"R\":\"" + String(HandCurrent.Ring) + "\"}";
     Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    Serial.print(CurrentValue);
+    log_e(CurrentValue);
     //set Middle value
     CurrentValue = "{\"M\":\"" + String(HandCurrent.Middle) + "\"}";
     Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    Serial.print(CurrentValue);
+    log_e(CurrentValue);
     //set Index value
     CurrentValue = "{\"I\":\"" + String(HandCurrent.Index) + "\"}";
     Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    Serial.print(CurrentValue);
+    log_e(CurrentValue);
     //set Thumb value
     CurrentValue = "{\"T\":\"" + String(HandCurrent.Thumb) + "\"}";
     Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    Serial.println(CurrentValue);
-    Serial.println("***");
+    log_e(CurrentValue);
+    log_e("***");
     //******************************************* Position ******************************************
-    HandPosition.Index+=0.01;
-    HandPosition.Pinky+=0.01;
-    HandPosition.Middle+=0.01;
-    HandPosition.Thumb+=0.01;
-    HandPosition.Ring+=0.01;
+    HandPosition.Index += 0.01;
+    HandPosition.Pinky += 0.01;
+    HandPosition.Middle += 0.01;
+    HandPosition.Thumb += 0.01;
+    HandPosition.Ring += 0.01;
     String PositionValue;
     //set Pinky value
-    Serial.println("------------- | Position |---------------");
+    log_e("------------- | Position |---------------");
     PositionValue = "{\"P\":\"" + String(HandPosition.Pinky) + "\"}";
     Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    Serial.print(PositionValue);
+    log_e(PositionValue);
     //set Ring value
     PositionValue = "{\"R\":\"" + String(HandPosition.Ring) + "\"}";
     Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    Serial.print(PositionValue);
+    log_e(PositionValue);
     //set Middle value
     PositionValue = "{\"M\":\"" + String(HandPosition.Middle) + "\"}";
     Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    Serial.print(PositionValue);
+    log_e(PositionValue);
     //set Index value
     PositionValue = "{\"I\":\"" + String(HandPosition.Index) + "\"}";
     Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    Serial.print(PositionValue);
+    log_e(PositionValue);
     //set Thumb value
     PositionValue = "{\"T\":\"" + String(HandPosition.Thumb) + "\"}";
     Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    Serial.println(PositionValue);
-    Serial.println("***");
+    log_e(PositionValue);
+    log_e("***");
     delay(500);
   }
   // if new newsetpoint readings are available
@@ -263,5 +256,19 @@ void loop() {
     printReadings();
     newsetpoint = false;
   }
-  // delay(1000); // Delay a second between loops.
+
+
+  //just for test uart F1/* must be deleted */
+  HandSetPoint.Pinky += 0.1;
+  HandSetPoint.Ring += 1.1;
+  HandSetPoint.Middle += 10.1;
+  HandSetPoint.Index += 10.001;
+  HandSetPoint.Thumb += 10.01;
+  printReadings();
+  if(Serial.available())
+  {
+    String uartRX=Serial.readString();
+    Serial.println(uartRX);
+  }
+  delay(500);
 }
