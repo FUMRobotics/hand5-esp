@@ -161,6 +161,7 @@ void printReadings() {
 void setup() {
   //Start serial communication
   Serial.begin(115200);
+  Serial2.begin(115200);
   log_e("Starting Arduino BLE Client application...");
 
   //Init BLE device
@@ -264,11 +265,16 @@ void loop() {
   HandSetPoint.Middle += 10.1;
   HandSetPoint.Index += 10.001;
   HandSetPoint.Thumb += 10.01;
-  printReadings();
-  if(Serial.available())
+  // printReadings();
+  if(Serial2.available())
   {
-    String uartRX=Serial.readString();
-    Serial.println(uartRX);
+    String uartRX=Serial2.readStringUntil('\n');
+    if(uartRX.startsWith("{CP:"))
+    {
+      
+    }else
+    {
+
+    }
   }
-  delay(500);
 }
