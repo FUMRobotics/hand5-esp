@@ -240,11 +240,11 @@ void loop() {
         log_e("***");
       } else {
         // parse position data for each finger
-        HandPosition.Pinky = uartRX.substring(uartRX.indexOf("P:") + 2, uartRX.indexOf("PR")).toInt();
-        HandPosition.Ring = uartRX.substring(uartRX.indexOf("R:") + 2, uartRX.indexOf("PM")).toInt();
-        HandPosition.Middle = uartRX.substring(uartRX.indexOf("M:") + 2, uartRX.indexOf("PI")).toInt();
-        HandPosition.Index = uartRX.substring(uartRX.indexOf("I:") + 2, uartRX.indexOf("PT")).toInt();
-        HandPosition.Thumb = uartRX.substring(uartRX.indexOf("T:") + 2, uartRX.indexOf("}")).toInt();
+        HandPosition.Pinky = uartRX.substring(uartRX.indexOf("P:") + 2, uartRX.indexOf("PR")).toFloat();
+        HandPosition.Ring = uartRX.substring(uartRX.indexOf("R:") + 2, uartRX.indexOf("PM")).toFloat();
+        HandPosition.Middle = uartRX.substring(uartRX.indexOf("M:") + 2, uartRX.indexOf("PI")).toFloat();
+        HandPosition.Index = uartRX.substring(uartRX.indexOf("I:") + 2, uartRX.indexOf("PT")).toFloat();
+        HandPosition.Thumb = uartRX.substring(uartRX.indexOf("T:") + 2, uartRX.indexOf("}")).toFloat();
         // HandPosition.Index += 0.01;
         // HandPosition.Pinky += 0.01;
         // HandPosition.Middle += 0.01;
