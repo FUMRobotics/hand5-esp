@@ -24,7 +24,7 @@ struct
   float Middle;
   float Index;
   float Thumb;
-} HandFinger;
+} HandSetPoint;
 struct
 {
   float Pinky;
@@ -141,31 +141,31 @@ class PositionCallbacks : public BLECharacteristicCallbacks {
   }
 };
 void printReadings_Current() {
-  Serial.println("*-*-*-*-*-*-*-Current-*-*-*-*-*-*-*");
+  log_e("*-*-*-*-*-*-*-Current-*-*-*-*-*-*-*");
   String strCurrent;
-      strCurrent = "{PP:" + String(HandCurrent.Pinky) + "}";
+  strCurrent = "{PP:" + String(HandCurrent.Pinky) + "}";
   Serial.println(strCurrent);
-      strCurrent = "{PR:" + String(HandCurrent.Ring) + "}";
+  strCurrent = "{PR:" + String(HandCurrent.Ring) + "}";
   Serial.println(strCurrent);
-      strCurrent = "{PM:" + String(HandCurrent.Middle) + "}";
+  strCurrent = "{PM:" + String(HandCurrent.Middle) + "}";
   Serial.println(strCurrent);
-      strCurrent = "{PI:" + String(HandCurrent.Index) + "}";
+  strCurrent = "{PI:" + String(HandCurrent.Index) + "}";
   Serial.println(strCurrent);
-      strCurrent = "{PT:" + String(HandCurrent.Thumb) + "}";
+  strCurrent = "{PT:" + String(HandCurrent.Thumb) + "}";
   Serial.println(strCurrent);
 }
 void printReadings_Position() {
-  Serial.println("-------Position-------");
+  log_e("-------Position-------");
   String strposition;
-      strposition = "{CP:" + String(HandPosition.Pinky) + "}";
+  strposition = "{CP:" + String(HandPosition.Pinky) + "}";
   Serial.println(strposition);
-      strposition = "{CR:" + String(HandPosition.Ring) + "}";
+  strposition = "{CR:" + String(HandPosition.Ring) + "}";
   Serial.println(strposition);
-      strposition = "{CM:" + String(HandPosition.Middle) + "}";
+  strposition = "{CM:" + String(HandPosition.Middle) + "}";
   Serial.println(strposition);
-      strposition = "{CI:" + String(HandPosition.Index) + "}";
+  strposition = "{CI:" + String(HandPosition.Index) + "}";
   Serial.println(strposition);
-      strposition = "{CT:" + String(HandPosition.Thumb) + "}";
+  strposition = "{CT:" + String(HandPosition.Thumb) + "}";
   Serial.println(strposition);
 }
 void setup() {
@@ -205,81 +205,63 @@ void setup() {
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pServer->getAdvertising()->start();
-  Serial.println("Waiting a client connection to notify...");
-  Serial.print('\n');
-  HandFinger.Pinky = 0;
-  HandFinger.Ring = 0.1;
-  HandFinger.Middle = 0.2;
-  HandFinger.Index = 0.3;
-  HandFinger.Thumb = 0.4;
+  log_e("Waiting a client connection to notify...");
+  log_e('\n');
 }
 
 void loop() {
-  if (deviceConnected) {
-    if ((millis() - lastTime) > timerDelay) {
-
-      HandFinger.Pinky++;
-      HandFinger.Ring++;
-      HandFinger.Middle++;
-      HandFinger.Index++;
-      HandFinger.Thumb++;
-
+  // if receive new current data from hand driver via BLE send by uart to matlab for Plot
+  if (new_current) {
+    printReadings_Current();
+    new_current = false;
+  }
+  // if receive new position data from hand driver via BLE send by uart to matlab for Plot
+  if (new_Position) {
+    printReadings_Position();
+    new_Position = false;
+  }
+  // if receive setpoint  data from matlab send for hand driver via BLE
+  if (Serial2.available()) {
+    rxUART_Buf = Serial2.readStringUntil('\n');
+    // if set core debug level in error mode  see received data from matlab in serial monitor
+    log_e(rxUART_Buf);
+    //parse received setpoint from matlab for each finger
+    HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("R")).toFloat();
+    HandSetPoint.Ring = rxUART_Buf.substring(rxUART_Buf.indexOf("R:") + 2, rxUART_Buf.indexOf("M")).toFloat();
+    HandSetPoint.Middle = rxUART_Buf.substring(rxUART_Buf.indexOf("M:") + 2, rxUART_Buf.indexOf("I")).toFloat();
+    HandSetPoint.Index = rxUART_Buf.substring(rxUART_Buf.indexOf("I:") + 2, rxUART_Buf.indexOf("T")).toFloat();
+    HandSetPoint.Thumb = rxUART_Buf.substring(rxUART_Buf.indexOf("T:") + 2, rxUART_Buf.indexOf("}")).toFloat();
+    //check if connected client send setpoint via BLE
+    if (deviceConnected) {
       String Fingers_Value;
-
-      //Set Setpoint  Characteristic value and notify connected client
+      //Set Setpoint  Characteristics value and notify connected client
       //set Pinky value
-      Serial.println("-------------");
-      Fingers_Value = "{\"P\":\"" + String(HandFinger.Pinky) + "\"}";
+      log_e("-------------");
+      Fingers_Value = "{\"P\":\"" + String(HandSetPoint.Pinky) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
-      Serial.println(Fingers_Value);
+      log_e(Fingers_Value);
       //set Ring value
-      Fingers_Value = "{\"R\":\"" + String(HandFinger.Ring) + "\"}";
+      Fingers_Value = "{\"R\":\"" + String(HandSetPoint.Ring) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
-      Serial.println(Fingers_Value);
+      log_e(Fingers_Value);
       //set Middle value
-      Fingers_Value = "{\"M\":\"" + String(HandFinger.Middle) + "\"}";
+      Fingers_Value = "{\"M\":\"" + String(HandSetPoint.Middle) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
-      Serial.println(Fingers_Value);
+      log_e(Fingers_Value);
       //set Index value
-      Fingers_Value = "{\"I\":\"" + String(HandFinger.Index) + "\"}";
+      Fingers_Value = "{\"I\":\"" + String(HandSetPoint.Index) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
-      Serial.println(Fingers_Value);
+      log_e(Fingers_Value);
       //set Thumb value
-      Fingers_Value = "{\"T\":\"" + String(HandFinger.Thumb) + "\"}";
+      Fingers_Value = "{\"T\":\"" + String(HandSetPoint.Thumb) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
-      Serial.println(Fingers_Value);
-      Serial.println("-------------");
-
-      lastTime = millis();
-    }
-    if (new_current) {
-      printReadings_Current();
-      new_current = false;
-    }
-    if (new_Position) {
-      printReadings_Position();
-      new_Position = false;
+      log_e(Fingers_Value);
+      log_e("-------------");
     }
   }
-  //for test uart in matlab
-
-  // Serial.println(counter_uart);
-  HandPosition.Pinky = rand()%100;
-  HandPosition.Ring = rand()%100;
-  HandPosition.Middle = rand()%100;
-  HandPosition.Index = rand()%100;
-  HandPosition.Thumb = rand()%100;
-  HandCurrent.Pinky = rand()%100;
-  HandCurrent.Ring = rand()%100;
-  HandCurrent.Middle = rand()%100;
-  HandCurrent.Index = rand()%100;
-  HandCurrent.Thumb = rand()%100;
-  printReadings_Position();
-  printReadings_Current();
-  delay(500);
 }
