@@ -1,6 +1,6 @@
 /*********
 writen by MH.Taji
-BLE Client
+BLE Client (hand)
 *********/
 
 #include "BLEDevice.h"
@@ -191,90 +191,90 @@ void loop() {
     }
     doConnect = false;
   }
-  if (connected) {
-    //******************************************* current ******************************************
-    HandCurrent.Index++;
-    HandCurrent.Pinky++;
-    HandCurrent.Middle++;
-    HandCurrent.Thumb++;
-    HandCurrent.Ring++;
-    String CurrentValue;
-    //set Pinky value
-    log_e("------------- | Current |---------------");
-    CurrentValue = "{\"P\":\"" + String(HandCurrent.Pinky) + "\"}";
-    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    log_e(CurrentValue);
-    //set Ring value
-    CurrentValue = "{\"R\":\"" + String(HandCurrent.Ring) + "\"}";
-    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    log_e(CurrentValue);
-    //set Middle value
-    CurrentValue = "{\"M\":\"" + String(HandCurrent.Middle) + "\"}";
-    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    log_e(CurrentValue);
-    //set Index value
-    CurrentValue = "{\"I\":\"" + String(HandCurrent.Index) + "\"}";
-    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    log_e(CurrentValue);
-    //set Thumb value
-    CurrentValue = "{\"T\":\"" + String(HandCurrent.Thumb) + "\"}";
-    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-    log_e(CurrentValue);
-    log_e("***");
-    //******************************************* Position ******************************************
-    HandPosition.Index += 0.01;
-    HandPosition.Pinky += 0.01;
-    HandPosition.Middle += 0.01;
-    HandPosition.Thumb += 0.01;
-    HandPosition.Ring += 0.01;
-    String PositionValue;
-    //set Pinky value
-    log_e("------------- | Position |---------------");
-    PositionValue = "{\"P\":\"" + String(HandPosition.Pinky) + "\"}";
-    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    log_e(PositionValue);
-    //set Ring value
-    PositionValue = "{\"R\":\"" + String(HandPosition.Ring) + "\"}";
-    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    log_e(PositionValue);
-    //set Middle value
-    PositionValue = "{\"M\":\"" + String(HandPosition.Middle) + "\"}";
-    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    log_e(PositionValue);
-    //set Index value
-    PositionValue = "{\"I\":\"" + String(HandPosition.Index) + "\"}";
-    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    log_e(PositionValue);
-    //set Thumb value
-    PositionValue = "{\"T\":\"" + String(HandPosition.Thumb) + "\"}";
-    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-    log_e(PositionValue);
-    log_e("***");
-    delay(500);
-  }
   // if new newsetpoint readings are available
   if (newsetpoint) {
     printReadings();
     newsetpoint = false;
   }
-
-
-  //just for test uart F1/* must be deleted */
-  HandSetPoint.Pinky += 0.1;
-  HandSetPoint.Ring += 1.1;
-  HandSetPoint.Middle += 10.1;
-  HandSetPoint.Index += 10.001;
-  HandSetPoint.Thumb += 10.01;
-  // printReadings();
-  if(Serial2.available())
-  {
-    String uartRX=Serial2.readStringUntil('\n');
-    if(uartRX.startsWith("{CP:"))
-    {
-      
-    }else
-    {
-
+  if (Serial2.available()) {
+    //read data from uart(hand driver)
+    String uartRX = Serial2.readStringUntil('\n');
+    //check if connect to server then pars received data from uart(hand driver)
+    if (connected) {
+      //detect current data or position data
+      if (uartRX.startsWith("{CP:")) {
+        // parse current data for each finger
+        HandCurrent.Pinky = uartRX.substring(uartRX.indexOf("P:") + 2, uartRX.indexOf("CR")).toInt();
+        HandCurrent.Ring = uartRX.substring(uartRX.indexOf("R:") + 2, uartRX.indexOf("CM")).toInt();
+        HandCurrent.Middle = uartRX.substring(uartRX.indexOf("M:") + 2, uartRX.indexOf("CI")).toInt();
+        HandCurrent.Index = uartRX.substring(uartRX.indexOf("I:") + 2, uartRX.indexOf("CT")).toInt();
+        HandCurrent.Thumb = uartRX.substring(uartRX.indexOf("T:") + 2, uartRX.indexOf("}")).toInt();
+        // HandCurrent.Index++;
+        // HandCurrent.Pinky++;
+        // HandCurrent.Middle++;
+        // HandCurrent.Thumb++;
+        // HandCurrent.Ring++;
+        //******************************************* send current via BLE ******************************************
+        String CurrentValue;
+        //set Pinky value
+        log_e("------------- | Current |---------------");
+        CurrentValue = "{\"P\":\"" + String(HandCurrent.Pinky) + "\"}";
+        Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+        log_e(CurrentValue);
+        //set Ring value
+        CurrentValue = "{\"R\":\"" + String(HandCurrent.Ring) + "\"}";
+        Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+        log_e(CurrentValue);
+        //set Middle value
+        CurrentValue = "{\"M\":\"" + String(HandCurrent.Middle) + "\"}";
+        Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+        log_e(CurrentValue);
+        //set Index value
+        CurrentValue = "{\"I\":\"" + String(HandCurrent.Index) + "\"}";
+        Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+        log_e(CurrentValue);
+        //set Thumb value
+        CurrentValue = "{\"T\":\"" + String(HandCurrent.Thumb) + "\"}";
+        Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+        log_e(CurrentValue);
+        log_e("***");
+      } else {
+        // parse position data for each finger
+        HandPosition.Pinky = uartRX.substring(uartRX.indexOf("P:") + 2, uartRX.indexOf("PR")).toInt();
+        HandPosition.Ring = uartRX.substring(uartRX.indexOf("R:") + 2, uartRX.indexOf("PM")).toInt();
+        HandPosition.Middle = uartRX.substring(uartRX.indexOf("M:") + 2, uartRX.indexOf("PI")).toInt();
+        HandPosition.Index = uartRX.substring(uartRX.indexOf("I:") + 2, uartRX.indexOf("PT")).toInt();
+        HandPosition.Thumb = uartRX.substring(uartRX.indexOf("T:") + 2, uartRX.indexOf("}")).toInt();
+        // HandPosition.Index += 0.01;
+        // HandPosition.Pinky += 0.01;
+        // HandPosition.Middle += 0.01;
+        // HandPosition.Thumb += 0.01;
+        // HandPosition.Ring += 0.01;
+        //******************************************* send position via BLE ******************************************
+        String PositionValue;
+        //set Pinky value
+        log_e("------------- | Position |---------------");
+        PositionValue = "{\"P\":\"" + String(HandPosition.Pinky) + "\"}";
+        Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+        log_e(PositionValue);
+        //set Ring value
+        PositionValue = "{\"R\":\"" + String(HandPosition.Ring) + "\"}";
+        Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+        log_e(PositionValue);
+        //set Middle value
+        PositionValue = "{\"M\":\"" + String(HandPosition.Middle) + "\"}";
+        Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+        log_e(PositionValue);
+        //set Index value
+        PositionValue = "{\"I\":\"" + String(HandPosition.Index) + "\"}";
+        Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+        log_e(PositionValue);
+        //set Thumb value
+        PositionValue = "{\"T\":\"" + String(HandPosition.Thumb) + "\"}";
+        Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+        log_e(PositionValue);
+        log_e("***");
+      }
     }
   }
 }
