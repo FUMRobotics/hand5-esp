@@ -41,7 +41,11 @@ struct
   uint16_t Index;
   uint16_t Thumb;
 } HandCurrent;
-
+ 
+ enum{
+  speed,
+  position
+ }ControlMode;
 // Timer variables
 unsigned long lastTime = 0;
 unsigned long timerDelay = 1000;
@@ -221,43 +225,70 @@ void loop() {
     new_Position = false;
   }
   // if receive setpoint  data from matlab send for hand driver via BLE
-  if (Serial2.available()) {
-    rxUART_Buf = Serial2.readStringUntil('\n');
+  if (Serial.available()) {
+    rxUART_Buf = Serial.readStringUntil('\n');
     // if set core debug level in error mode  see received data from matlab in serial monitor
     log_e(rxUART_Buf);
     //parse received setpoint from matlab for each finger
-    HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("R")).toFloat();
-    HandSetPoint.Ring = rxUART_Buf.substring(rxUART_Buf.indexOf("R:") + 2, rxUART_Buf.indexOf("M")).toFloat();
-    HandSetPoint.Middle = rxUART_Buf.substring(rxUART_Buf.indexOf("M:") + 2, rxUART_Buf.indexOf("I")).toFloat();
-    HandSetPoint.Index = rxUART_Buf.substring(rxUART_Buf.indexOf("I:") + 2, rxUART_Buf.indexOf("T")).toFloat();
+    if(rxUART_Buf.startsWith("{SP"))
+    {
+    HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("S")).toFloat();
+    HandSetPoint.Ring = rxUART_Buf.substring(rxUART_Buf.indexOf("R:") + 2, rxUART_Buf.indexOf("S")).toFloat();
+    HandSetPoint.Middle = rxUART_Buf.substring(rxUART_Buf.indexOf("M:") + 2, rxUART_Buf.indexOf("S")).toFloat();
+    HandSetPoint.Index = rxUART_Buf.substring(rxUART_Buf.indexOf("I:") + 2, rxUART_Buf.indexOf("S")).toFloat();
     HandSetPoint.Thumb = rxUART_Buf.substring(rxUART_Buf.indexOf("T:") + 2, rxUART_Buf.indexOf("}")).toFloat();
+    ControlMode=speed;
+    }else if(rxUART_Buf.startsWith("{PP"))
+    {
+    HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("P")).toFloat();
+    HandSetPoint.Ring = rxUART_Buf.substring(rxUART_Buf.indexOf("R:") + 2, rxUART_Buf.indexOf("P")).toFloat();
+    HandSetPoint.Middle = rxUART_Buf.substring(rxUART_Buf.indexOf("M:") + 2, rxUART_Buf.indexOf("P")).toFloat();
+    HandSetPoint.Index = rxUART_Buf.substring(rxUART_Buf.indexOf("I:") + 2, rxUART_Buf.indexOf("P")).toFloat();
+    HandSetPoint.Thumb = rxUART_Buf.substring(rxUART_Buf.indexOf("T:") + 2, rxUART_Buf.indexOf("}")).toFloat();
+    ControlMode=position;
+    }
     //check if connected client send setpoint via BLE
     if (deviceConnected) {
       String Fingers_Value;
       //Set Setpoint  Characteristics value and notify connected client
       //set Pinky value
       log_e("-------------");
-      Fingers_Value = "{\"P\":\"" + String(HandSetPoint.Pinky) + "\"}";
+      if(ControlMode==speed)
+        Fingers_Value = "{\"SP\":\"" + String(HandSetPoint.Pinky) + "\"}";
+      else
+        Fingers_Value = "{\"PP\":\"" + String(HandSetPoint.Pinky) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
       log_e(Fingers_Value);
       //set Ring value
-      Fingers_Value = "{\"R\":\"" + String(HandSetPoint.Ring) + "\"}";
+      if(ControlMode==speed)
+      Fingers_Value = "{\"SR\":\"" + String(HandSetPoint.Ring) + "\"}";
+      else
+      Fingers_Value = "{\"PR\":\"" + String(HandSetPoint.Ring) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
       log_e(Fingers_Value);
       //set Middle value
-      Fingers_Value = "{\"M\":\"" + String(HandSetPoint.Middle) + "\"}";
+      if(ControlMode==speed)
+      Fingers_Value = "{\"SM\":\"" + String(HandSetPoint.Middle) + "\"}";
+      else
+      Fingers_Value = "{\"PM\":\"" + String(HandSetPoint.Middle) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
       log_e(Fingers_Value);
       //set Index value
-      Fingers_Value = "{\"I\":\"" + String(HandSetPoint.Index) + "\"}";
+      if(ControlMode==speed)
+      Fingers_Value = "{\"SI\":\"" + String(HandSetPoint.Index) + "\"}";
+      else
+      Fingers_Value = "{\"PI\":\"" + String(HandSetPoint.Index) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
       log_e(Fingers_Value);
       //set Thumb value
-      Fingers_Value = "{\"T\":\"" + String(HandSetPoint.Thumb) + "\"}";
+      if(ControlMode==speed)
+      Fingers_Value = "{\"ST\":\"" + String(HandSetPoint.Thumb) + "\"}";
+      else
+      Fingers_Value = "{\"PT\":\"" + String(HandSetPoint.Thumb) + "\"}";
       Setpoint_Characteristics.setValue(Fingers_Value.c_str());
       Setpoint_Characteristics.notify();
       log_e(Fingers_Value);
