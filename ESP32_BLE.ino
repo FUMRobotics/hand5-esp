@@ -8,6 +8,8 @@ BLE Client (hand)
 #include "BLE2902.h"
 #include <Arduino.h>
 
+#define debug
+
 //BLE server name
 #define bleServerName "Hand_ESP32"
 
@@ -35,6 +37,10 @@ struct
   uint16_t Index;
   uint16_t Thumb;
 } HandCurrent;
+enum {
+  speed,
+  position
+} ControlMode;
 
 // See the following for generating UUIDs:
 #define SERVICE_UUID "e9eb3b02-5eda-11ee-8c99-0242ac120002"
@@ -80,29 +86,37 @@ static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteri
   //setpoint Index value
   String strFinger;
   SetpointChar = (char*)pData;
-  switch (SetpointChar[2]) {
+  log_e("receive ble data");
+  log_e("%s", SetpointChar);
+  //parse control mode
+  if (SetpointChar[2] == 'S')
+    ControlMode = speed;
+  else
+    ControlMode = position;
+  //parse setpoint for each finger
+  switch (SetpointChar[3]) {
     case 'P':
       strFinger = String(SetpointChar);
-      HandSetPoint.Pinky = strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Pinky = strFinger.substring(7, length - 2).toFloat();
       break;
     case 'R':
       strFinger = String(SetpointChar);
-      HandSetPoint.Ring = strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Ring = strFinger.substring(7, length - 2).toFloat();
       break;
     case 'M':
       strFinger = String(SetpointChar);
-      HandSetPoint.Middle = strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Middle = strFinger.substring(7, length - 2).toFloat();
       break;
     case 'I':
       strFinger = String(SetpointChar);
-      HandSetPoint.Index = strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Index = strFinger.substring(7, length - 2).toFloat();
       break;
     case 'T':
       strFinger = String(SetpointChar);
-      HandSetPoint.Thumb = strFinger.substring(6, length - 2).toFloat();
+      HandSetPoint.Thumb = strFinger.substring(7, length - 2).toFloat();
+      newsetpoint = true;
       break;
   }
-  newsetpoint = true;
 }
 
 //Connect to the BLE Server that has the name, Service, and Characteristics
@@ -154,8 +168,12 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 //function that prints the received setpoint
 void printReadings() {
   String setpoint_str;
-  setpoint_str = "{P:" + String(HandSetPoint.Pinky) + "R:" + String(HandSetPoint.Ring) + "M:" + String(HandSetPoint.Middle) + "I:" + String(HandSetPoint.Index) + "T:" + String(HandSetPoint.Thumb) + "}";
-  Serial.println(setpoint_str);
+  if (ControlMode == speed)
+    setpoint_str = "{SP:" + String(HandSetPoint.Pinky) + "SR:" + String(HandSetPoint.Ring) + "SM:" + String(HandSetPoint.Middle) + "SI:" + String(HandSetPoint.Index) + "ST:" + String(HandSetPoint.Thumb) + "}";
+  else
+    setpoint_str = "{PP:" + String(HandSetPoint.Pinky) + "PR:" + String(HandSetPoint.Ring) + "PM:" + String(HandSetPoint.Middle) + "PI:" + String(HandSetPoint.Index) + "PT:" + String(HandSetPoint.Thumb) + "}";
+  Serial2.println(setpoint_str);
+  log_e("%s", setpoint_str);
 }
 
 void setup() {
@@ -191,10 +209,67 @@ void loop() {
     }
     doConnect = false;
   }
-  // if new newsetpoint readings are available
+  // if  newsetpoint readings are available
   if (newsetpoint) {
     printReadings();
     newsetpoint = false;
+#ifdef debug
+    String PositionValue;
+    HandPosition.Pinky = HandSetPoint.Pinky + 5;
+    HandPosition.Ring = HandSetPoint.Ring + 5;
+    HandPosition.Middle = HandSetPoint.Middle + 5;
+    HandPosition.Index = HandSetPoint.Index + 5;
+    HandPosition.Thumb = HandSetPoint.Thumb + 5;
+    log_e("------------- | Position |---------------");
+    PositionValue = "{\"P\":\"" + String(HandPosition.Pinky) + "\"}";
+    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+    log_e("%s", PositionValue);
+    //set Ring value
+    PositionValue = "{\"R\":\"" + String(HandPosition.Ring) + "\"}";
+    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+    log_e("%s", PositionValue);
+    //set Middle value
+    PositionValue = "{\"M\":\"" + String(HandPosition.Middle) + "\"}";
+    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+    log_e("%s", PositionValue);
+    //set Index value
+    PositionValue = "{\"I\":\"" + String(HandPosition.Index) + "\"}";
+    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+    log_e("%s", PositionValue);
+    //set Thumb value
+    PositionValue = "{\"T\":\"" + String(HandPosition.Thumb) + "\"}";
+    Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
+    log_e("%s", PositionValue);
+    log_e("***");
+    HandCurrent.Pinky = HandSetPoint.Pinky + 10;
+    HandCurrent.Ring = HandSetPoint.Ring + 10;
+    HandCurrent.Middle = HandSetPoint.Middle + 10;
+    HandCurrent.Index = HandSetPoint.Index + 10;
+    HandCurrent.Thumb = HandSetPoint.Thumb + 10;
+    String CurrentValue;
+    log_e("------------- | Current |---------------");
+    CurrentValue = "{\"P\":\"" + String(HandCurrent.Pinky) + "\"}";
+    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+    log_e("%s", CurrentValue);
+    //set Ring value
+    CurrentValue = "{\"R\":\"" + String(HandCurrent.Ring) + "\"}";
+    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+    log_e("%s", CurrentValue);
+    //set Middle value
+    CurrentValue = "{\"M\":\"" + String(HandCurrent.Middle) + "\"}";
+    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+    log_e("%s", CurrentValue);
+    //set Index value
+    CurrentValue = "{\"I\":\"" + String(HandCurrent.Index) + "\"}";
+    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+    log_e("%s", CurrentValue);
+    //set Thumb value
+    CurrentValue = "{\"T\":\"" + String(HandCurrent.Thumb) + "\"}";
+    Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
+    log_e("%s", CurrentValue);
+    log_e("***");
+
+#endif
   }
   if (Serial2.available()) {
     //read data from uart(hand driver)
@@ -220,23 +295,23 @@ void loop() {
         log_e("------------- | Current |---------------");
         CurrentValue = "{\"P\":\"" + String(HandCurrent.Pinky) + "\"}";
         Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-        log_e(CurrentValue);
+        log_e("%s", CurrentValue);
         //set Ring value
         CurrentValue = "{\"R\":\"" + String(HandCurrent.Ring) + "\"}";
         Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-        log_e(CurrentValue);
+        log_e("%s", CurrentValue);
         //set Middle value
         CurrentValue = "{\"M\":\"" + String(HandCurrent.Middle) + "\"}";
         Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-        log_e(CurrentValue);
+        log_e("%s", CurrentValue);
         //set Index value
         CurrentValue = "{\"I\":\"" + String(HandCurrent.Index) + "\"}";
         Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-        log_e(CurrentValue);
+        log_e("%s", CurrentValue);
         //set Thumb value
         CurrentValue = "{\"T\":\"" + String(HandCurrent.Thumb) + "\"}";
         Current_Charachteristic->writeValue(CurrentValue.c_str(), CurrentValue.length());
-        log_e(CurrentValue);
+        log_e("%s", CurrentValue);
         log_e("***");
       } else {
         // parse position data for each finger
@@ -256,23 +331,23 @@ void loop() {
         log_e("------------- | Position |---------------");
         PositionValue = "{\"P\":\"" + String(HandPosition.Pinky) + "\"}";
         Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-        log_e(PositionValue);
+        log_e("%s", PositionValue);
         //set Ring value
         PositionValue = "{\"R\":\"" + String(HandPosition.Ring) + "\"}";
         Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-        log_e(PositionValue);
+        log_e("%s", PositionValue);
         //set Middle value
         PositionValue = "{\"M\":\"" + String(HandPosition.Middle) + "\"}";
         Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-        log_e(PositionValue);
+        log_e("%s", PositionValue);
         //set Index value
         PositionValue = "{\"I\":\"" + String(HandPosition.Index) + "\"}";
         Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-        log_e(PositionValue);
+        log_e("%s", PositionValue);
         //set Thumb value
         PositionValue = "{\"T\":\"" + String(HandPosition.Thumb) + "\"}";
         Position_Charachteristic->writeValue(PositionValue.c_str(), PositionValue.length());
-        log_e(PositionValue);
+        log_e("%s", PositionValue);
         log_e("***");
       }
     }
