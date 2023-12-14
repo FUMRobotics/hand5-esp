@@ -11,9 +11,12 @@ BLE Server (PC)
 
 //BLE server name
 #define bleServerName "Hand_ESP32"
-#define debug
+// #define debug
+// #define debugUART
 bool new_current = 0;
 bool new_Position = 0;
+bool new_Setpoint = 0;
+bool GUI_Started = 0;
 bool RXuart = 0;
 String rxUART_Buf;
 uint8_t counter_uart = 0;
@@ -78,9 +81,11 @@ BLEDescriptor Setpoint_Descriptor(BLEUUID((uint16_t)0x2905));
 //Setup callbacks onConnect and onDisconnect
 class MyServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer *pServer) {
+    log_e("client connected");
     deviceConnected = true;
   };
   void onDisconnect(BLEServer *pServer) {
+    log_e("client disconnected");
     deviceConnected = false;
   };
 };
@@ -145,64 +150,64 @@ class PositionCallbacks : public BLECharacteristicCallbacks {
   }
 };
 void printReadings_Current() {
-  #ifndef debug
+#ifndef debugUART
   log_e("*-*-*-*-*-*-*-Current-*-*-*-*-*-*-*");
   String strCurrent;
-  strCurrent = "{PP:" + String(HandCurrent.Pinky) + "}";
+  strCurrent = "{CP:" + String(HandCurrent.Pinky) + "}";
   Serial.println(strCurrent);
-  strCurrent = "{PR:" + String(HandCurrent.Ring) + "}";
+  strCurrent = "{CR:" + String(HandCurrent.Ring) + "}";
   Serial.println(strCurrent);
-  strCurrent = "{PM:" + String(HandCurrent.Middle) + "}";
+  strCurrent = "{CM:" + String(HandCurrent.Middle) + "}";
   Serial.println(strCurrent);
-  strCurrent = "{PI:" + String(HandCurrent.Index) + "}";
+  strCurrent = "{CI:" + String(HandCurrent.Index) + "}";
   Serial.println(strCurrent);
-  strCurrent = "{PT:" + String(HandCurrent.Thumb) + "}";
+  strCurrent = "{CT:" + String(HandCurrent.Thumb) + "}";
   Serial.println(strCurrent);
-  #endif
-  #ifdef debug
+#endif
+#ifdef debugUART
   log_e("*-*-*-*-*-*-*-Current-*-*-*-*-*-*-*");
   String strCurrent;
-  strCurrent = "{PP:" + String(HandCurrent.Pinky) + "}";
+  strCurrent = "{CP:" + String(HandCurrent.Pinky) + "}";
   Serial2.println(strCurrent);
-  strCurrent = "{PR:" + String(HandCurrent.Ring) + "}";
+  strCurrent = "{CR:" + String(HandCurrent.Ring) + "}";
   Serial2.println(strCurrent);
-  strCurrent = "{PM:" + String(HandCurrent.Middle) + "}";
+  strCurrent = "{CM:" + String(HandCurrent.Middle) + "}";
   Serial2.println(strCurrent);
-  strCurrent = "{PI:" + String(HandCurrent.Index) + "}";
+  strCurrent = "{CI:" + String(HandCurrent.Index) + "}";
   Serial2.println(strCurrent);
-  strCurrent = "{PT:" + String(HandCurrent.Thumb) + "}";
+  strCurrent = "{CT:" + String(HandCurrent.Thumb) + "}";
   Serial2.println(strCurrent);
-  #endif
+#endif
 }
 void printReadings_Position() {
-  #ifndef debug
+#ifndef debugUART
   log_e("-------Position-------");
   String strposition;
-  strposition = "{CP:" + String(HandPosition.Pinky) + "}";
+  strposition = "{PP:" + String(HandPosition.Pinky) + "}";
   Serial.println(strposition);
-  strposition = "{CR:" + String(HandPosition.Ring) + "}";
+  strposition = "{PR:" + String(HandPosition.Ring) + "}";
   Serial.println(strposition);
-  strposition = "{CM:" + String(HandPosition.Middle) + "}";
+  strposition = "{PM:" + String(HandPosition.Middle) + "}";
   Serial.println(strposition);
-  strposition = "{CI:" + String(HandPosition.Index) + "}";
+  strposition = "{PI:" + String(HandPosition.Index) + "}";
   Serial.println(strposition);
-  strposition = "{CT:" + String(HandPosition.Thumb) + "}";
+  strposition = "{PT:" + String(HandPosition.Thumb) + "}";
   Serial.println(strposition);
-  #endif
-  #ifdef debug
+#endif
+#ifdef debugUART
   log_e("-------Position-------");
   String strposition;
-  strposition = "{CP:" + String(HandPosition.Pinky) + "}";
+  strposition = "{PP:" + String(HandPosition.Pinky) + "}";
   Serial2.println(strposition);
-  strposition = "{CR:" + String(HandPosition.Ring) + "}";
+  strposition = "{PR:" + String(HandPosition.Ring) + "}";
   Serial2.println(strposition);
-  strposition = "{CM:" + String(HandPosition.Middle) + "}";
+  strposition = "{PM:" + String(HandPosition.Middle) + "}";
   Serial2.println(strposition);
-  strposition = "{CI:" + String(HandPosition.Index) + "}";
+  strposition = "{PI:" + String(HandPosition.Index) + "}";
   Serial2.println(strposition);
-  strposition = "{CT:" + String(HandPosition.Thumb) + "}";
+  strposition = "{PT:" + String(HandPosition.Thumb) + "}";
   Serial2.println(strposition);
-  #endif
+#endif
 }
 void setup() {
   // Start serial communication
@@ -243,6 +248,7 @@ void setup() {
   pServer->getAdvertising()->start();
   log_e("Waiting a client connection to notify...");
   log_e("\n");
+  Serial.println("[reset]");
 }
 
 void loop() {
@@ -254,33 +260,37 @@ void loop() {
     new_Position = false;
   }
   // if receive setpoint  data from matlab send for hand driver via BLE
-  if (Serial2.available()) {
-    rxUART_Buf = Serial2.readStringUntil('\n');
+  if (Serial.available()) {
+    rxUART_Buf = Serial.readStringUntil('\n');
     // if set core debug level in error mode  see received data from matlab in serial monitor
     log_e("[%s]", rxUART_Buf);
     //parse received setpoint from matlab for each finger
-    if (rxUART_Buf.startsWith("{SP")) {
+    if (rxUART_Buf == "start") {
+      log_e("start CMD receive");
+      GUI_Started = 1;
+    } else if (rxUART_Buf.startsWith("{SP")) {
       HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("SR")).toFloat();
       HandSetPoint.Ring = rxUART_Buf.substring(rxUART_Buf.indexOf("R:") + 2, rxUART_Buf.indexOf("SM")).toFloat();
       HandSetPoint.Middle = rxUART_Buf.substring(rxUART_Buf.indexOf("M:") + 2, rxUART_Buf.indexOf("SI")).toFloat();
       HandSetPoint.Index = rxUART_Buf.substring(rxUART_Buf.indexOf("I:") + 2, rxUART_Buf.indexOf("ST")).toFloat();
       HandSetPoint.Thumb = rxUART_Buf.substring(rxUART_Buf.indexOf("T:") + 2, rxUART_Buf.indexOf("}")).toFloat();
       ControlMode = speed;
+      new_Setpoint = 1;
       log_e("speed mode : P%fR%fM%fI%fT%f", HandSetPoint.Pinky, HandSetPoint.Ring, HandSetPoint.Middle, HandSetPoint.Index, HandSetPoint.Thumb);
 #ifdef debug
       //just for test uart communication between esp and matlab
       new_current = 1;
       new_Position = 1;
-      HandPosition.Pinky=HandSetPoint.Pinky+5;
-      HandPosition.Ring=HandSetPoint.Ring+5;
-      HandPosition.Middle=HandSetPoint.Middle+5;
-      HandPosition.Index=HandSetPoint.Index+5;
-      HandPosition.Thumb=HandSetPoint.Thumb+5;
-      HandCurrent.Pinky=HandSetPoint.Pinky+10;
-      HandCurrent.Ring=HandSetPoint.Ring+10;
-      HandCurrent.Middle=HandSetPoint.Middle+10;
-      HandCurrent.Index=HandSetPoint.Index+10;
-      HandCurrent.Thumb=HandSetPoint.Thumb+10;
+      HandPosition.Pinky = HandSetPoint.Pinky + 5;
+      HandPosition.Ring = HandSetPoint.Ring + 5;
+      HandPosition.Middle = HandSetPoint.Middle + 5;
+      HandPosition.Index = HandSetPoint.Index + 5;
+      HandPosition.Thumb = HandSetPoint.Thumb + 5;
+      HandCurrent.Pinky = HandSetPoint.Pinky + 10;
+      HandCurrent.Ring = HandSetPoint.Ring + 10;
+      HandCurrent.Middle = HandSetPoint.Middle + 10;
+      HandCurrent.Index = HandSetPoint.Index + 10;
+      HandCurrent.Thumb = HandSetPoint.Thumb + 10;
 #endif
     } else if (rxUART_Buf.startsWith("{PP")) {
       HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("PR")).toFloat();
@@ -289,69 +299,80 @@ void loop() {
       HandSetPoint.Index = rxUART_Buf.substring(rxUART_Buf.indexOf("I:") + 2, rxUART_Buf.indexOf("PT")).toFloat();
       HandSetPoint.Thumb = rxUART_Buf.substring(rxUART_Buf.indexOf("T:") + 2, rxUART_Buf.indexOf("}")).toFloat();
       ControlMode = position;
+      new_Setpoint = 1;
       log_e("position mode : P%fR%fM%fI%fT%f", HandSetPoint.Pinky, HandSetPoint.Ring, HandSetPoint.Middle, HandSetPoint.Index, HandSetPoint.Thumb);
 #ifdef debug
       //just for test uart communication between esp and matlab
       new_current = 1;
       new_Position = 1;
-      HandPosition.Pinky=HandSetPoint.Pinky+5;
-      HandPosition.Ring=HandSetPoint.Ring+5;
-      HandPosition.Middle=HandSetPoint.Middle+5;
-      HandPosition.Index=HandSetPoint.Index+5;
-      HandPosition.Thumb=HandSetPoint.Thumb+5;
-      HandCurrent.Pinky=HandSetPoint.Pinky+10;
-      HandCurrent.Ring=HandSetPoint.Ring+10;
-      HandCurrent.Middle=HandSetPoint.Middle+10;
-      HandCurrent.Index=HandSetPoint.Index+10;
-      HandCurrent.Thumb=HandSetPoint.Thumb+10;
+      HandPosition.Pinky = HandSetPoint.Pinky + 5;
+      HandPosition.Ring = HandSetPoint.Ring + 5;
+      HandPosition.Middle = HandSetPoint.Middle + 5;
+      HandPosition.Index = HandSetPoint.Index + 5;
+      HandPosition.Thumb = HandSetPoint.Thumb + 5;
+      HandCurrent.Pinky = HandSetPoint.Pinky + 10;
+      HandCurrent.Ring = HandSetPoint.Ring + 10;
+      HandCurrent.Middle = HandSetPoint.Middle + 10;
+      HandCurrent.Index = HandSetPoint.Index + 10;
+      HandCurrent.Thumb = HandSetPoint.Thumb + 10;
 #endif
     }
-    //check if connected client send setpoint via BLE
-    if (deviceConnected) {
-      String Fingers_Value;
-      //Set Setpoint  Characteristics value and notify connected client
-      //set Pinky value
-      log_e("-------------");
-      if (ControlMode == speed)
-        Fingers_Value = "{\"SP\":\"" + String(HandSetPoint.Pinky) + "\"}";
-      else
-        Fingers_Value = "{\"PP\":\"" + String(HandSetPoint.Pinky) + "\"}";
-      Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-      Setpoint_Characteristics.notify();
-      log_e("%s", Fingers_Value);
-      //set Ring value
-      if (ControlMode == speed)
-        Fingers_Value = "{\"SR\":\"" + String(HandSetPoint.Ring) + "\"}";
-      else
-        Fingers_Value = "{\"PR\":\"" + String(HandSetPoint.Ring) + "\"}";
-      Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-      Setpoint_Characteristics.notify();
-      log_e("%s", Fingers_Value);
-      //set Middle value
-      if (ControlMode == speed)
-        Fingers_Value = "{\"SM\":\"" + String(HandSetPoint.Middle) + "\"}";
-      else
-        Fingers_Value = "{\"PM\":\"" + String(HandSetPoint.Middle) + "\"}";
-      Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-      Setpoint_Characteristics.notify();
-      log_e("%s", Fingers_Value);
-      //set Index value
-      if (ControlMode == speed)
-        Fingers_Value = "{\"SI\":\"" + String(HandSetPoint.Index) + "\"}";
-      else
-        Fingers_Value = "{\"PI\":\"" + String(HandSetPoint.Index) + "\"}";
-      Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-      Setpoint_Characteristics.notify();
-      log_e("%s", Fingers_Value);
-      //set Thumb value
-      if (ControlMode == speed)
-        Fingers_Value = "{\"ST\":\"" + String(HandSetPoint.Thumb) + "\"}";
-      else
-        Fingers_Value = "{\"PT\":\"" + String(HandSetPoint.Thumb) + "\"}";
-      Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-      Setpoint_Characteristics.notify();
-      log_e("%s", Fingers_Value);
-      log_e("-------------");
-    }
+  }
+  //check if connected client send setpoint via BLE
+  if (deviceConnected && new_Setpoint) {
+    String Fingers_Value;
+    //Set Setpoint  Characteristics value and notify connected client
+    //set Pinky value
+    log_e("-------------");
+    if (ControlMode == speed)
+      Fingers_Value = "{\"SP\":\"" + String(HandSetPoint.Pinky) + "\"}";
+    else
+      Fingers_Value = "{\"PP\":\"" + String(HandSetPoint.Pinky) + "\"}";
+    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+    Setpoint_Characteristics.notify();
+    log_e("%s", Fingers_Value);
+    //set Ring value
+    if (ControlMode == speed)
+      Fingers_Value = "{\"SR\":\"" + String(HandSetPoint.Ring) + "\"}";
+    else
+      Fingers_Value = "{\"PR\":\"" + String(HandSetPoint.Ring) + "\"}";
+    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+    Setpoint_Characteristics.notify();
+    log_e("%s", Fingers_Value);
+    //set Middle value
+    if (ControlMode == speed)
+      Fingers_Value = "{\"SM\":\"" + String(HandSetPoint.Middle) + "\"}";
+    else
+      Fingers_Value = "{\"PM\":\"" + String(HandSetPoint.Middle) + "\"}";
+    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+    Setpoint_Characteristics.notify();
+    log_e("%s", Fingers_Value);
+    //set Index value
+    if (ControlMode == speed)
+      Fingers_Value = "{\"SI\":\"" + String(HandSetPoint.Index) + "\"}";
+    else
+      Fingers_Value = "{\"PI\":\"" + String(HandSetPoint.Index) + "\"}";
+    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+    Setpoint_Characteristics.notify();
+    log_e("%s", Fingers_Value);
+    //set Thumb value
+    if (ControlMode == speed)
+      Fingers_Value = "{\"ST\":\"" + String(HandSetPoint.Thumb) + "\"}";
+    else
+      Fingers_Value = "{\"PT\":\"" + String(HandSetPoint.Thumb) + "\"}";
+    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+    Setpoint_Characteristics.notify();
+    log_e("%s", Fingers_Value);
+    log_e("-------------");
+    new_Setpoint = 0;
+  }
+  if (deviceConnected == 0 && new_Setpoint) {
+    Serial.println("[disconnect]");
+    log_e("new setpoint and devise disconnected");
+  }
+  if (GUI_Started && deviceConnected) {
+    GUI_Started = 0;
+    Serial.println("[connect]");
+    log_e("gui start and devise connected");
   }
 }
