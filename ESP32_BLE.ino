@@ -11,7 +11,7 @@ BLE Server (PC)
 
 //BLE server name
 #define bleServerName "Hand_ESP32"
-// #define debug
+#define debug
 // #define debugUART
 bool new_current = 0;
 bool new_Position = 0;
@@ -211,7 +211,7 @@ void printReadings_Position() {
 }
 void setup() {
   // Start serial communication
-  Serial.begin(115200);
+  Serial.begin(921600);
   Serial2.begin(115200);
 
   // Create the BLE Device
@@ -268,6 +268,7 @@ void loop() {
     if (rxUART_Buf == "start") {
       log_e("start CMD receive");
       GUI_Started = 1;
+      deviceConnected=1;
     } else if (rxUART_Buf.startsWith("{SP")) {
       HandSetPoint.Pinky = rxUART_Buf.substring(rxUART_Buf.indexOf("P:") + 2, rxUART_Buf.indexOf("SR")).toFloat();
       HandSetPoint.Ring = rxUART_Buf.substring(rxUART_Buf.indexOf("R:") + 2, rxUART_Buf.indexOf("SM")).toFloat();
@@ -318,58 +319,58 @@ void loop() {
 #endif
     }
   }
-  //check if connected client send setpoint via BLE
-  if (deviceConnected && new_Setpoint) {
-    String Fingers_Value;
-    //Set Setpoint  Characteristics value and notify connected client
-    //set Pinky value
-    log_e("-------------");
-    if (ControlMode == speed)
-      Fingers_Value = "{\"SP\":\"" + String(HandSetPoint.Pinky) + "\"}";
-    else
-      Fingers_Value = "{\"PP\":\"" + String(HandSetPoint.Pinky) + "\"}";
-    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-    Setpoint_Characteristics.notify();
-    log_e("%s", Fingers_Value);
-    //set Ring value
-    if (ControlMode == speed)
-      Fingers_Value = "{\"SR\":\"" + String(HandSetPoint.Ring) + "\"}";
-    else
-      Fingers_Value = "{\"PR\":\"" + String(HandSetPoint.Ring) + "\"}";
-    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-    Setpoint_Characteristics.notify();
-    log_e("%s", Fingers_Value);
-    //set Middle value
-    if (ControlMode == speed)
-      Fingers_Value = "{\"SM\":\"" + String(HandSetPoint.Middle) + "\"}";
-    else
-      Fingers_Value = "{\"PM\":\"" + String(HandSetPoint.Middle) + "\"}";
-    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-    Setpoint_Characteristics.notify();
-    log_e("%s", Fingers_Value);
-    //set Index value
-    if (ControlMode == speed)
-      Fingers_Value = "{\"SI\":\"" + String(HandSetPoint.Index) + "\"}";
-    else
-      Fingers_Value = "{\"PI\":\"" + String(HandSetPoint.Index) + "\"}";
-    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-    Setpoint_Characteristics.notify();
-    log_e("%s", Fingers_Value);
-    //set Thumb value
-    if (ControlMode == speed)
-      Fingers_Value = "{\"ST\":\"" + String(HandSetPoint.Thumb) + "\"}";
-    else
-      Fingers_Value = "{\"PT\":\"" + String(HandSetPoint.Thumb) + "\"}";
-    Setpoint_Characteristics.setValue(Fingers_Value.c_str());
-    Setpoint_Characteristics.notify();
-    log_e("%s", Fingers_Value);
-    log_e("-------------");
-    new_Setpoint = 0;
-  }
-  if (deviceConnected == 0 && new_Setpoint) {
-    Serial.println("[disconnect]");
-    log_e("new setpoint and devise disconnected");
-  }
+  // //check if connected client send setpoint via BLE
+  // if (deviceConnected && new_Setpoint) {
+  //   String Fingers_Value;
+  //   //Set Setpoint  Characteristics value and notify connected client
+  //   //set Pinky value
+  //   log_e("-------------");
+  //   if (ControlMode == speed)
+  //     Fingers_Value = "{\"SP\":\"" + String(HandSetPoint.Pinky) + "\"}";
+  //   else
+  //     Fingers_Value = "{\"PP\":\"" + String(HandSetPoint.Pinky) + "\"}";
+  //   Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+  //   Setpoint_Characteristics.notify();
+  //   log_e("%s", Fingers_Value);
+  //   //set Ring value
+  //   if (ControlMode == speed)
+  //     Fingers_Value = "{\"SR\":\"" + String(HandSetPoint.Ring) + "\"}";
+  //   else
+  //     Fingers_Value = "{\"PR\":\"" + String(HandSetPoint.Ring) + "\"}";
+  //   Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+  //   Setpoint_Characteristics.notify();
+  //   log_e("%s", Fingers_Value);
+  //   //set Middle value
+  //   if (ControlMode == speed)
+  //     Fingers_Value = "{\"SM\":\"" + String(HandSetPoint.Middle) + "\"}";
+  //   else
+  //     Fingers_Value = "{\"PM\":\"" + String(HandSetPoint.Middle) + "\"}";
+  //   Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+  //   Setpoint_Characteristics.notify();
+  //   log_e("%s", Fingers_Value);
+  //   //set Index value
+  //   if (ControlMode == speed)
+  //     Fingers_Value = "{\"SI\":\"" + String(HandSetPoint.Index) + "\"}";
+  //   else
+  //     Fingers_Value = "{\"PI\":\"" + String(HandSetPoint.Index) + "\"}";
+  //   Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+  //   Setpoint_Characteristics.notify();
+  //   log_e("%s", Fingers_Value);
+  //   //set Thumb value
+  //   if (ControlMode == speed)
+  //     Fingers_Value = "{\"ST\":\"" + String(HandSetPoint.Thumb) + "\"}";
+  //   else
+  //     Fingers_Value = "{\"PT\":\"" + String(HandSetPoint.Thumb) + "\"}";
+  //   Setpoint_Characteristics.setValue(Fingers_Value.c_str());
+  //   Setpoint_Characteristics.notify();
+  //   log_e("%s", Fingers_Value);
+  //   log_e("-------------");
+  //   new_Setpoint = 0;
+  // }
+  // if (deviceConnected == 0 && new_Setpoint) {
+  //   Serial.println("[disconnect]");
+  //   log_e("new setpoint and devise disconnected");
+  // }
   if (GUI_Started && deviceConnected) {
     GUI_Started = 0;
     Serial.println("[connect]");
