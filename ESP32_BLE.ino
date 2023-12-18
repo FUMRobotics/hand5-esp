@@ -8,8 +8,9 @@ BLE Client (hand)
 #include "BLE2902.h"
 #include <Arduino.h>
 
-#define debug
-
+// #define debugESP
+#define debugUART
+uint8_t count=0;
 //BLE server name
 #define bleServerName "Hand_ESP32"
 
@@ -86,13 +87,15 @@ static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteri
   //setpoint Index value
   String strFinger;
   SetpointChar = (char*)pData;
-  log_e("receive ble data");
   log_e("%s", SetpointChar);
   //parse control mode
-  if (SetpointChar[2] == 'S')
+  if (SetpointChar[2] == 'S') {
+    log_e("speed mode");
     ControlMode = speed;
-  else
+  } else {
+    log_e("position mode");
     ControlMode = position;
+  }
   //parse setpoint for each finger
   switch (SetpointChar[3]) {
     case 'P':
@@ -173,7 +176,7 @@ void printReadings() {
   else
     setpoint_str = "{PP:" + String(HandSetPoint.Pinky) + "PR:" + String(HandSetPoint.Ring) + "PM:" + String(HandSetPoint.Middle) + "PI:" + String(HandSetPoint.Index) + "PT:" + String(HandSetPoint.Thumb) + "}";
   Serial2.println(setpoint_str);
-  log_e("%s", setpoint_str);
+  log_e("%s",setpoint_str);
 }
 
 void setup() {
@@ -181,17 +184,17 @@ void setup() {
   Serial.begin(115200);
   Serial2.begin(115200);
   log_e("Starting Arduino BLE Client application...");
-
+ControlMode=speed;
   //Init BLE device
-  BLEDevice::init("");
+  // BLEDevice::init("");
 
-  // Retrieve a Scanner and set the callback we want to use to be informed when we
-  // have detected a new device.  Specify that we want active scanning and start the
-  // scan to run for 30 seconds.
-  BLEScan* pBLEScan = BLEDevice::getScan();
-  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  pBLEScan->setActiveScan(true);
-  pBLEScan->start(50);
+  // // Retrieve a Scanner and set the callback we want to use to be informed when we
+  // // have detected a new device.  Specify that we want active scanning and start the
+  // // scan to run for 30 seconds.
+  // BLEScan* pBLEScan = BLEDevice::getScan();
+  // pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  // pBLEScan->setActiveScan(true);
+  // pBLEScan->start(50);
 }
 
 void loop() {
@@ -211,9 +214,9 @@ void loop() {
   }
   // if  newsetpoint readings are available
   if (newsetpoint) {
-    printReadings();
+    // printReadings();
     newsetpoint = false;
-#ifdef debug
+#ifdef debugESP
     String PositionValue;
     HandPosition.Pinky = HandSetPoint.Pinky + 5;
     HandPosition.Ring = HandSetPoint.Ring + 5;
@@ -315,11 +318,11 @@ void loop() {
         log_e("***");
       } else {
         // parse position data for each finger
-        HandPosition.Pinky = uartRX.substring(uartRX.indexOf("P:") + 2, uartRX.indexOf("PR")).toFloat();
-        HandPosition.Ring = uartRX.substring(uartRX.indexOf("R:") + 2, uartRX.indexOf("PM")).toFloat();
-        HandPosition.Middle = uartRX.substring(uartRX.indexOf("M:") + 2, uartRX.indexOf("PI")).toFloat();
-        HandPosition.Index = uartRX.substring(uartRX.indexOf("I:") + 2, uartRX.indexOf("PT")).toFloat();
-        HandPosition.Thumb = uartRX.substring(uartRX.indexOf("T:") + 2, uartRX.indexOf("}")).toFloat();
+        HandPosition.Pinky = uartRX.substring(uartRX.indexOf("P:") + 2, uartRX.indexOf("PR")).toFloat() / 100;
+        HandPosition.Ring = uartRX.substring(uartRX.indexOf("R:") + 2, uartRX.indexOf("PM")).toFloat() / 100;
+        HandPosition.Middle = uartRX.substring(uartRX.indexOf("M:") + 2, uartRX.indexOf("PI")).toFloat() / 100;
+        HandPosition.Index = uartRX.substring(uartRX.indexOf("I:") + 2, uartRX.indexOf("PT")).toFloat() / 100;
+        HandPosition.Thumb = uartRX.substring(uartRX.indexOf("T:") + 2, uartRX.indexOf("}")).toFloat() / 100;
         // HandPosition.Index += 0.01;
         // HandPosition.Pinky += 0.01;
         // HandPosition.Middle += 0.01;
@@ -352,4 +355,18 @@ void loop() {
       }
     }
   }
+#ifdef debugUART
+  HandSetPoint.Pinky++;
+  HandSetPoint.Index++;
+  HandSetPoint.Middle++;
+  HandSetPoint.Ring++;
+  HandSetPoint.Thumb++;
+  count++;
+  if(count%2)
+  ControlMode=speed;
+  else
+  ControlMode=position;
+  printReadings();
+  delay(700);
+#endif
 }
