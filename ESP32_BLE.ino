@@ -9,7 +9,7 @@ BLE Client (hand)
 #include <Arduino.h>
 
 // #define debugESP
-#define debugUART
+// #define debugUART
 uint8_t count=0;
 //BLE server name
 #define bleServerName "Hand_ESP32"
@@ -87,13 +87,13 @@ static void SetpointNotifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteri
   //setpoint Index value
   String strFinger;
   SetpointChar = (char*)pData;
-  log_e("%s", SetpointChar);
+  // log_e("%s", SetpointChar);
   //parse control mode
   if (SetpointChar[2] == 'S') {
-    log_e("speed mode");
+    // log_e("speed mode");
     ControlMode = speed;
   } else {
-    log_e("position mode");
+    // log_e("position mode");
     ControlMode = position;
   }
   //parse setpoint for each finger
@@ -175,7 +175,7 @@ void printReadings() {
     setpoint_str = "{SP:" + String(HandSetPoint.Pinky) + "SR:" + String(HandSetPoint.Ring) + "SM:" + String(HandSetPoint.Middle) + "SI:" + String(HandSetPoint.Index) + "ST:" + String(HandSetPoint.Thumb) + "}";
   else
     setpoint_str = "{PP:" + String(HandSetPoint.Pinky) + "PR:" + String(HandSetPoint.Ring) + "PM:" + String(HandSetPoint.Middle) + "PI:" + String(HandSetPoint.Index) + "PT:" + String(HandSetPoint.Thumb) + "}";
-  Serial2.println(setpoint_str);
+  Serial.println(setpoint_str);
   log_e("%s",setpoint_str);
 }
 
@@ -186,15 +186,15 @@ void setup() {
   log_e("Starting Arduino BLE Client application...");
 ControlMode=speed;
   //Init BLE device
-  // BLEDevice::init("");
+  BLEDevice::init("");
 
-  // // Retrieve a Scanner and set the callback we want to use to be informed when we
-  // // have detected a new device.  Specify that we want active scanning and start the
-  // // scan to run for 30 seconds.
-  // BLEScan* pBLEScan = BLEDevice::getScan();
-  // pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-  // pBLEScan->setActiveScan(true);
-  // pBLEScan->start(50);
+  // Retrieve a Scanner and set the callback we want to use to be informed when we
+  // have detected a new device.  Specify that we want active scanning and start the
+  // scan to run for 30 seconds.
+  BLEScan* pBLEScan = BLEDevice::getScan();
+  pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+  pBLEScan->setActiveScan(true);
+  pBLEScan->start(50);
 }
 
 void loop() {
@@ -214,7 +214,7 @@ void loop() {
   }
   // if  newsetpoint readings are available
   if (newsetpoint) {
-    // printReadings();
+    printReadings();
     newsetpoint = false;
 #ifdef debugESP
     String PositionValue;
@@ -274,9 +274,9 @@ void loop() {
 
 #endif
   }
-  if (Serial2.available()) {
+  if (Serial.available()) {
     //read data from uart(hand driver)
-    String uartRX = Serial2.readStringUntil('\n');
+    String uartRX = Serial.readStringUntil('\n');
     //check if connect to server then pars received data from uart(hand driver)
     if (connected) {
       //detect current data or position data
